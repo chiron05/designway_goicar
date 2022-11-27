@@ -2,28 +2,103 @@ const httpStatusCodes = require('../Constants/http-status-codes');
 const { formResponse } = require('../Utils/helper');
 const PickCustomer=require('../Models/pickCustomer.model')
 const DropCustomer = require('../Models/dropCustomer.model')
-
 const Driver = require('../Models/Driver.js')
-const cloudinary = require('../Utils/cloudinary')
+const { Op, Sequelize } = require('sequelize')
+const cloudinary = require('../Utils/cloudinary');
+const { createDriverSchema, updateDriverSchema, getRideDetailsSchema, deleteDriverSchema } = require('../Joi/driver.validation');
+
 
 exports.getDrivers = async (req, res) => {
-
-
-    await Driver.findAll().then(result => {
+    await Driver.findAll({
+        where:{
+            isDeleted:false
+        }
+    }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
     }).catch(err => {
         res.status(httpStatusCodes[404].code)
             .json(formResponse(httpStatusCodes[404].code, err))
     })
-
-
 }
+
+
 exports.createDriver = async (req, res) => {
+
+    if(Object.keys(req.body).length === 0){
+        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
+    }
+
+    if(req.body.phone_number==req.body.alternate_number){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Alternate phonenumber must be different`))
+        return;
+    }
     try {
         const result = await cloudinary.uploader.upload(req.file.path, {
             resource_type: "auto"
         })
+
+
+        const {error,value}=createDriverSchema.validate({
+            full_name: req.body.full_name,
+            phone_number: req.body.phone_number,
+            alternate_number: req.body.alternate_number,
+            email: req.body.email,
+            license_no: req.body.license_no,
+            license_img: result.url
+        });
+        if(error){
+            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
+            return 
+        }  
+
+        
+        const existDriver=await Driver.findOne({ 
+            where:Sequelize.and(
+                {
+                    isDeleted:true
+                },Sequelize.or(                   
+                        {email:req.body.email},
+                        {phone_number:req.body.phone_number}
+                )                          
+        )
+        })
+    
+       
+       if(existDriver){
+            const updateExistingDriver=await Driver.update({
+                isDeleted:false
+            },{
+                where:Sequelize.and(
+                    {
+                        isDeleted:true
+                    },Sequelize.or(                   
+                            {email:req.body.email},
+                            {phone_number:req.body.phone_number}
+                    )
+                )
+            })
+
+            return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
+                "message":"Driver's Account Reactivated"
+            }))    
+       }
+
+
+        const existingDriver=await Driver.findOne({
+            where:{
+                email:req.body.email,
+                isDeleted:true
+            }
+        })
+       if(existingDriver){
+            const driverDelete=await Driver.destroy({
+                where: {
+                    email:req.body.email
+                }
+            })
+       }
+
 
         const driver = Driver.build({
             full_name: req.body.full_name,
@@ -47,16 +122,29 @@ exports.createDriver = async (req, res) => {
 
     }
     catch (err) {
+        console.log(err)
         res.status(httpStatusCodes[404].code)
             .json(formResponse(httpStatusCodes[404].code, err))
     }
-}
-exports.updateDriver = async (req, res) => {
+    }
 
+
+
+exports.updateDriver = async (req, res) => {
+    if(Object.keys(req.body).length === 0){
+        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
+    }
+
+    const {error,value}=updateDriverSchema.validate(req.body);
+    if(error){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
+        return 
+    }  
     try {
         await Driver.update(req.body, {
             where: {
-                id: req.params.id
+                id: req.params.id,
+                isDeleted:false
             }
         })
             .then(result => {
@@ -80,24 +168,30 @@ exports.updateDriver = async (req, res) => {
 }
 
 exports.deleteDriver = async (req, res) => {
+    const {error,value}=deleteDriverSchema.validate({
+        id:req.params.id
+    });
+    if(error){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
+        return 
+    }  
     try {
-        await Driver.destroy({
-            where: {
-                id: req.params.id
+
+        const deleteDriver=await Driver.update({
+            isDeleted:true
+        },{
+            where:{
+                id:req.params.id,
+                isDeleted:false
             }
         })
-        .then(result => {
-            if (result) {
-                res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, `driver ${req.params.id} deleted successfully ${result}`))
-            }
-            else {
-                res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `No driver are available for driver_ID: ${req.params.id}`))
-            }
+        console.log(deleteDriver)
+        if(deleteDriver[0]){
+           return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, `driver ${req.params.id} deleted successfully `))
         }
-        )
-        .catch(err =>
-            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, err))
-        )
+        else{
+            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `No driver are available for driver_ID: ${req.params.id}`))
+        }
 
     }
     catch (error) {
@@ -109,31 +203,48 @@ exports.deleteDriver = async (req, res) => {
 
 
 exports.getRideDetails=async(req,res)=>{
+    const {error,value}=getRideDetailsSchema.validate({
+        id:req.params.id,
+        pickup:req.body.pickup
+    });
+    if(error){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
+        return 
+    }  
 
     const pickup=req.body.pickup
     if(pickup == 'true')
     {
         let booking=await PickCustomer.findAll({
-            attributes:['booking_id'],
             where:{
                 driver:req.params.id
             }
         })
-        res.status(200).send({
+       if(booking.length==0){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"No booking available"))
+       }
+       else{
+        res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
             "pickup":booking
-        })
+        }))
+       }
     }
     else
     {
         let booking=await DropCustomer.findAll({
-            attributes:['booking_id'],
             where:{
                 driver:req.params.id
             }
         })
-        res.status(200).send({
-            "Dropoff":booking
-        })
+        if(booking.length==0){
+            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"No booking available"))
+           }
+           else{
+            res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
+                "dropoff":booking
+            }))
+        
+           }
     }
 }
 

@@ -25,6 +25,7 @@ const Booking=db.define('booking',{
     pickup_time:{
         type: DataTypes.TIME,
         allowNull: false,
+        required:true
     },
     dropoff_date:{
         type: DataTypes.DATE,
@@ -33,6 +34,7 @@ const Booking=db.define('booking',{
     dropoff_time:{
         type: DataTypes.TIME,
         allowNull: false,
+        required:true
     },
     vehicle_type:{
         type: DataTypes.STRING,
@@ -50,10 +52,14 @@ const Booking=db.define('booking',{
         type: DataTypes.STRING,
         allowNull: false,
     },
-    bookingFlag:{
-        type: DataTypes.BOOLEAN,
+    booking_status:{
+        type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: false
+        defaultValue: "pending"
+    },
+    isDeleted:{
+        type: DataTypes.BOOLEAN,
+        defaultValue:false
     }
     
 })
@@ -90,6 +96,8 @@ Customer.belongsTo(Booking,{
 })
 
 
-Booking.sync()
+Booking.sync({
+    // alter:true
+})
 module.exports=Booking
 

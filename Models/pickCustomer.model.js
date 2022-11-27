@@ -12,7 +12,8 @@ const PickCustomer=db.define('pickcustomer',{
         allowNull: false
     },
     booking_id: {
-        type: DataTypes.UUID
+        type: DataTypes.UUID,
+        unique:true
   
     },
     driver: {
@@ -43,10 +44,16 @@ const PickCustomer=db.define('pickcustomer',{
         defaultValue: false
     }
     // TODO:- Fuel is pending
+    , isDeleted:{
+        type: DataTypes.BOOLEAN,
+        defaultValue:false
+    }
 
 })
 
-PickCustomer.sync()
+PickCustomer.sync({
+    // alter:true
+})
 module.exports=PickCustomer
 
 

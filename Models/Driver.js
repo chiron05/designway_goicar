@@ -8,6 +8,7 @@ const Driver=db.define('driver',{
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
         allowNull: false,
+        unique:true
     },
     full_name: {
         type: DataTypes.STRING,
@@ -15,21 +16,25 @@ const Driver=db.define('driver',{
     },
     phone_number:{
         type: DataTypes.STRING(1234),
-        allowNull:false
+        allowNull:false,
+        unique:true
 
     },
     alternate_number:{
         type: DataTypes.STRING(1234),
-        allowNull:false
+        allowNull:false,
+        unique:true
     },
     email:{
         type:DataTypes.STRING,
         allowNull:false,
-        isLowercase: true
+        isLowercase: true,
+        unique:true
     },
     license_no:{
         type: DataTypes.STRING(1234), 
-        allowNull:false
+        allowNull:false,
+        unique:true
     },
     license_img:{
         type: DataTypes.STRING,
@@ -39,8 +44,14 @@ const Driver=db.define('driver',{
         type: DataTypes.BOOLEAN,
         allowNull:false,
         defaultValue:true
+    },
+    isDeleted:{
+        type: DataTypes.BOOLEAN,
+        defaultValue:false
     }
 })
 
-Driver.sync()
+Driver.sync({
+    // alter:true
+})
 module.exports=Driver

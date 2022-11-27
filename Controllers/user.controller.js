@@ -1,54 +1,67 @@
-const User=require('../Models/User')
+const httpStatusCodes = require("../Constants/http-status-codes")
+const { updateUserSchema, deleteUserSchema } = require("../Joi/user.validation")
+const User = require("../Models/User")
+const { formResponse } = require("../Utils/helper")
 
-exports.getUsers = async (req, res) => {
-    try {
-        const users=await User.findAll()
-        res.status(200).send(users)
-
+exports.updateUser=async(req,res)=>{
+    if(Object.keys(req.body).length === 0){
+        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
     }
-    catch (error) {
-        res.status(500).send(error)
+    let validationObject={
+        ...req.body,
+        id:req.params.id
     }
-
-}
-
-exports.createUser = async (req, res) => {
-    try {
-        const user = await User.create(req.body)
-        res.status(200).send(user)
+    const {error,value}=updateUserSchema.validate(validationObject);
+    if(error){
+       return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
     }
-    catch (err) {
-        res.status(500).send(err)
+    if(Object.keys(req.body).length === 0){
+      return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Please provide data through body"))
     }
-}
-exports.updateUser = async (req, res) => {
-
-    try {
-        await User.update(req.body,{
-        where:{
-            id:req.params.id
+    User.update(req.body,{
+       where:{
+        id:req.params.id,
+        isDeleted:false
+       }
+    }).then((result)=>{
+       
+        if(result[0]){
+            res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,"Updated successfully"))
         }
-    })
-        res.status(200).send(` User ${req.params.id} updated`)
-
-    }
-    catch (error) {
-        res.status(500).send(error)
-    }
-
-}
-exports.deleteUser = async (req, res) => {
-    try {
-        await User.destroy({
-        where:{
-            id:req.params.id
+        else{
+            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`Update unsuccessfull for user ${req.params.id}`))
         }
-    })
-        res.status(200).send(`User ${req.params.id} deleted`)
 
-    }
-    catch (error) {
-        res.status(500).send(error)
-    }
+    }).catch((err)=>{
+        console.log(err)
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,err))
+    })
 }
 
+exports.deleteUser=async(req,res)=>{
+    
+    const {error,value}=deleteUserSchema.validate({id:req.params.id});
+    if(error){
+       return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
+    }
+    User.update({
+        isDeleted:true
+    },{
+        where:{
+         id:req.params.id,
+         isDeleted:false
+        }
+     }).then((result)=>{
+        
+         if(result[0]){
+             res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,"Deleted successfully"))
+         }
+         else{
+             res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`Deleted unsuccessfull for user ${req.params.id}`))
+         }
+ 
+     }).catch((err)=>{
+         console.log(err)
+         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,err))
+     })
+}

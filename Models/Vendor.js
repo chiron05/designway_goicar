@@ -1,9 +1,9 @@
-const { DataTypes }=require('sequelize')
-const db=require('../config/db.js')
-const Vehicle=require('./Vehicle')
-const Vendor=db.define('vendor',{
+const { DataTypes } = require('sequelize')
+const db = require('../config/db.js')
+const Vehicle = require('./Vehicle')
+const Vendor = db.define('vendor', {
 
-    id:{
+    id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
@@ -13,48 +13,55 @@ const Vendor=db.define('vendor',{
         type: DataTypes.STRING,
         allowNull: false
     },
-    address:{
+    address: {
         type: DataTypes.STRING,
-        allowNull:false
+        allowNull: false
     },
-    city:{ 
+    city: {
         type: DataTypes.STRING,
-        allowNull:false
+        allowNull: false
     },
-    state:{ 
+    state: {
         type: DataTypes.STRING,
-        allowNull:false
+        allowNull: false
     },
-    pincode:{
-       type:DataTypes.INTEGER,
-       allowNull:false
+    pincode: {
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
-    email:{
-        type:DataTypes.STRING,
-        allowNull:false,
-        isLowercase: true
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        isLowercase: true,
+        unique:true
     },
-    phone_number:{
+    phone_number: {
         type: DataTypes.STRING(1234),//exceeding int
-        allowNull:false
+        allowNull: false,
+        unique:true
+    },
+    alternate_number: {
+        type: DataTypes.STRING(1234), //exceeding int
+        allowNull: false
+    },
+    id_proof: {
+        type: DataTypes.STRING,
+        allowNull: false,
 
     },
-    alternate_number:{
-        type: DataTypes.STRING(1234), //exceeding int
-        allowNull:false
+    id_no: {
+        type: DataTypes.STRING, //can be alphanumberic
+        allowNull: false,
     },
-    id_proof:{
-        type:DataTypes.STRING,
-        allowNull:false,
-       
-    },
-    id_no:{
-        type:DataTypes.STRING, //can be alphanumberic
-        allowNull:false,
+    isDeleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 })
 
 
 
-Vendor.sync()
-module.exports=Vendor
+Vendor.sync({
+    // alter: true
+})
+module.exports = Vendor

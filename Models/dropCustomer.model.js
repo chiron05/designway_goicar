@@ -12,7 +12,8 @@ const DropCustomer=db.define('dropcustomer',{
         allowNull: false
     },
     booking_id: {
-        type: DataTypes.UUID
+        type: DataTypes.UUID,
+        unique:true
    
     },
     driver: {
@@ -41,12 +42,18 @@ const DropCustomer=db.define('dropcustomer',{
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false
+    },
+    isDeleted:{
+        type: DataTypes.BOOLEAN,
+        defaultValue:false
     }
     // TODO:- Fuel is pending
 
 })
 
-DropCustomer.sync()
+DropCustomer.sync({
+    // alter:true
+})
 module.exports=DropCustomer
 
 

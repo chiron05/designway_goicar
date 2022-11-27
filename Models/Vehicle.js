@@ -69,6 +69,10 @@ const Vehicle=db.define('vehicle',{
         type:DataTypes.STRING,
         allowNull:false
 },
+isDeleted:{
+    type: DataTypes.BOOLEAN,
+    defaultValue:false
+}
 
 })
 
@@ -81,5 +85,7 @@ Vehicle.belongsTo(Vendor,{
     
 })
 
-Vehicle.sync()
+Vehicle.sync({
+    // alter:true
+})
 module.exports=Vehicle

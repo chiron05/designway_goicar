@@ -1,4 +1,5 @@
 const httpStatusCodes = require('../Constants/http-status-codes');
+const { createCustomerSchema, updateCustomer, deleteCustomer } = require('../Joi/customer.validation');
 const Customer = require('../Models/customer.model');
 const cloudinary=require('../Utils/cloudinary');
 const { formResponse } = require('../Utils/helper');
@@ -6,46 +7,99 @@ const { any } = require('../Utils/multer');
 const upload=require('../Utils/multer')
 
 exports.deleteCustomer=async(req,res,next)=>{
-    Customer.destroy({
-        where:{
-            _id:req.params.id
+    
+    const {error,value}=deleteCustomer.validate({
+        _id:req.params.id
+    });
+    if(error){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
+        return 
+    }else{
+        const customerDeatails=await Customer.findOne(
+            {
+            attributes:["isDeleted"],
+            where:{
+                _id:req.params.id
+            }
+        })
+        if(customerDeatails)
+        {
+        if(customerDeatails.dataValues.isDeleted){
+            return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`No Customer available for CustomerID: ${ req.params.id}`))
         }
-    }).then(result=>{
-        if(result){
-            res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,`Customer Deleted successfully`))
-        }
-        else{
-            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`No Customer available for CustomerID: ${ req.params.id}`))
-        }     
-    }).catch(err=>{
-        res.status(httpStatusCodes[404].code)
-        .json(formResponse(httpStatusCodes[404].code, err))
-    })
-}
 
-exports.updateCustomer=async(req,res,next)=>{
-    Customer.update(
-        req.body,
-        { where: { _id: req.params.id } }
-      )
-        .then(result =>{
-            if(result[0]){
-                res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,`Customer Updated successfully`))
+        Customer.update({
+            isDeleted:true
+        },{
+            where:{
+                _id:req.params.id
+            }
+        }).then(result=>{
+            
+            console.log(result)
+            if(result){
+                res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,`Customer Deleted successfully`))
             }
             else{
                 res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`No Customer available for CustomerID: ${ req.params.id}`))
             }     
-        }     
-        )
-        .catch(err =>
+        }).catch(err=>{
             res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, err))
-        )
+            .json(formResponse(httpStatusCodes[400].code, err))
+        })
+    }
+    else{
+        res.status(httpStatusCodes[400].code)
+        .json(formResponse(httpStatusCodes[400].code, err))
+    }
+
+    }
+}
+
+
+
+exports.updateCustomer=async(req,res,next)=>{
+    if(Object.keys(req.body).length === 0){
+        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
+    }
+    const {error,value}=updateCustomer.validate({
+        _id:req.params.id,
+        firstName:req.body.firstName,
+        lastName:req.body.lastName,
+        email:req.body.email,
+        phoneNumber:req.body.phoneNumber,
+    });
+    if(error){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
+        return 
+    }
+    else{
+        Customer.update(
+            req.body,
+            { where: { _id: req.params.id,isDeleted:false } }
+          )
+            .then(result =>{
+                if(result[0]){
+                    res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,`Customer Updated successfully`))
+                }
+                else{
+                    res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`No Customer available for CustomerID: ${ req.params.id}`))
+                }     
+            }     
+            )
+            .catch(err =>
+                res.status(httpStatusCodes[400].code)
+                .json(formResponse(httpStatusCodes[400].code, err))
+            )
+    }
 }
 
 exports.getCustomer=async(req,res)=>{
     Customer.findAll({
         attributes:["_id","booking_id","firstName","lastName","email","phoneNumber","idProofURL"],
+        where:{
+            isDeleted:false
+        }
     }).then(result=>{
         res.status(httpStatusCodes[200].code)
         .json(formResponse(httpStatusCodes[200].code, result))
@@ -56,14 +110,42 @@ exports.getCustomer=async(req,res)=>{
 }
 
 exports.createCustomer=async(req,res,next)=>{
-
+    if(Object.keys(req.body).length === 0){
+        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
+    }
     try {
         const result=await cloudinary.uploader.upload(req.file.path);
-        let data= Customer.build({
+        const {error,value}=createCustomerSchema.validate({
             firstName:req.body.firstName,
             lastName:req.body.lastName,
             email:req.body.email,
             phoneNumber:req.body.phoneNumber,
+            idProofURL:result.url
+        });
+        if(error){
+            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
+            return 
+        }
+
+        const existingCustomer=await Customer.findOne({
+            attributes:["email"],
+            where:{
+                email:req.body.email,
+                isDeleted:true
+            }
+        })
+       if(existingCustomer){
+            const customerDelete=await Customer.destroy({
+                where: {
+                    email:req.body.email
+                }
+            })
+       }
+
+        let data= Customer.build({
+            firstName:req.body.firstName,
+            lastName:req.body.lastName,
+            email:req.body.email,
             phoneNumber:req.body.phoneNumber,
             idProofURL:result.url
         })
@@ -71,8 +153,8 @@ exports.createCustomer=async(req,res,next)=>{
         await data.save();
 
         if(data.errors){
-            res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, data.errors))
+            res.status(httpStatusCodes[400].code)
+            .json(formResponse(httpStatusCodes[400].code, data.errors))
         }
         else{
             res.status(httpStatusCodes[200].code)
@@ -81,8 +163,9 @@ exports.createCustomer=async(req,res,next)=>{
        
        
     } catch (error) {
-        res.status(httpStatusCodes[404].code)
-        .json(formResponse(httpStatusCodes[404].code, error))
+        console.log(error)
+        res.status(httpStatusCodes[400].code)
+        .json(formResponse(httpStatusCodes[400].code, error))
     
     }
 

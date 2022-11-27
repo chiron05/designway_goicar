@@ -8,9 +8,9 @@ const User = db.define('User', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
         allowNull: false,
-        
+
     },
-    token:{
+    token: {
         type: DataTypes.STRING
     },
     role: {
@@ -24,9 +24,9 @@ const User = db.define('User', {
     },
     phone_number: {
         type: DataTypes.STRING(1234),
-        allowNull: false
+        allowNull: false,
+        unique: true,
 
-    
     },
     email: {
         type: DataTypes.STRING,
@@ -45,8 +45,14 @@ const User = db.define('User', {
         allowNull: false,
 
     },
+    isDeleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    }
 
 })
 
-User.sync()
+User.sync({
+    // alter:true
+})
 module.exports = User

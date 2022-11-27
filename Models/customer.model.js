@@ -39,13 +39,19 @@ const Customer=db.define('customer',{
    idProofURL:{
     type: DataTypes.STRING,
     allowNull: false
-     }
+     },
+     isDeleted:{
+        type: DataTypes.BOOLEAN,
+        defaultValue:false
+    }
     
 })
 
 
 
-Customer.sync()
+Customer.sync({
+    // alter:true
+})
 module.exports=Customer
 
 

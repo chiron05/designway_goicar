@@ -8,7 +8,22 @@
     <title>Home</title>
 </head>
 <body>
-    This is home page
-    <h1><%=customerid.bookingid%></h1>
+    <h1>ALL DETAILS</h1>
+    <h1><%=userDetails.booking_id%></h1>
+    <h1><%=userDetails.total%></h1>
+    <form action="http://localhost:3000/payment_gateway/payumoney" method="post">
+        <input class="amount" type="hidden" name="amount" value=<%=userDetails.total %>/>
+        <input class="con" type="hidden" name="phone" value=<%=userDetails.phoneNumber %> />
+        <input type="hidden" name="service_provider" 
+        value="payu_paisa"/>
+        <input type="hidden" class="product" name="productinfo" 
+        value=<%=userDetails.booking_id %>/>
+        <input type="hidden" class="name" name="firstname" 
+        value=<%=userDetails.firstName %>/>    
+        <input type="hidden" class="email" name="email" 
+        value=<%=userDetails.email %>/>         
+        <button type="submit" value="Pay">Payment</button>
+    </form>
+    <h1>Payment Not Done</h1>
 </body>
 </html>
