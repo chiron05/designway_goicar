@@ -15,7 +15,6 @@ const createDriverSchema = Joi.object({
 )
 
 const updateDriverSchema = Joi.object({
-    id: Joi.string().min(36).required(),
     full_name: Joi.string().alphanum().min(6).max(20),
     phone_number: Joi.string().length(12).pattern(/^[0-9]+$/),
     alternate_number: Joi.string().length(12).pattern(/^[0-9]+$/),
