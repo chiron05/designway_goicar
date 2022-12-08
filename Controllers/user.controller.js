@@ -38,6 +38,11 @@ exports.updateUser=async(req,res)=>{
     })
 }
 
+exports.getUser=async(req,res)=>{
+    const users=await User.findAll();
+    res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,users))
+}
+
 exports.deleteUser=async(req,res)=>{
     
     const {error,value}=deleteUserSchema.validate({id:req.params.id});
