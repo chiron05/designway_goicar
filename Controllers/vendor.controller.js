@@ -2,6 +2,7 @@ const Vendor = require('../Models/Vendor.js')
 const Vehicle = require('../Models/Vehicle')
 const httpStatusCodes = require('../Constants/http-status-codes');
 const { formResponse } = require('../Utils/helper');
+const { Sequelize } =require("sequelize")
 const cloudinary = require('../Utils/cloudinary');
 
 const { createVendorSchema, updateVendorSchema, deleteVendor } = require('../Joi/vendor.validation');
@@ -70,6 +71,7 @@ exports.createVendor = async (req, res) => {
         return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, vendor))
     }
     catch (error) {
+        console.log(error)
         return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
     }
 
