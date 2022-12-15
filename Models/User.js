@@ -23,7 +23,7 @@ const User = db.define('User', {
         allowNull: false
     },
     phone_number: {
-        type: DataTypes.STRING(1234),
+        type: DataTypes.STRING(),
         allowNull: false,
         unique: true,
 

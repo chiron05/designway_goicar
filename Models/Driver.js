@@ -15,13 +15,13 @@ const Driver=db.define('driver',{
         allowNull: false
     },
     phone_number:{
-        type: DataTypes.STRING(1234),
+        type: DataTypes.STRING(),
         allowNull:false,
         unique:true
 
     },
     alternate_number:{
-        type: DataTypes.STRING(1234),
+        type: DataTypes.STRING(),
         allowNull:false,
         unique:true
     },
@@ -32,7 +32,7 @@ const Driver=db.define('driver',{
         unique:true
     },
     license_no:{
-        type: DataTypes.STRING(1234), 
+        type: DataTypes.STRING(), 
         allowNull:false,
         unique:true
     },
