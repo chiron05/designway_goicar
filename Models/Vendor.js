@@ -36,12 +36,12 @@ const Vendor = db.define('vendor', {
         unique:true
     },
     phone_number: {
-        type: DataTypes.STRING(),//exceeding int
+        type: DataTypes.STRING,//exceeding int
         allowNull: false,
         unique:true
     },
     alternate_number: {
-        type: DataTypes.STRING(), //exceeding int
+        type: DataTypes.STRING, //exceeding int
         allowNull: false
     },
     id_proof: {
