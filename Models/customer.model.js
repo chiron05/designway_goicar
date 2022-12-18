@@ -10,12 +10,6 @@ const Customer=db.define('customer',{
         primaryKey: true,
         allowNull: false,
       },
-    
-    booking_id: {     //forgin key should come here
-        type:DataTypes.UUID,
-        // model: 'Vendor',
-        // key: 'id'
-    },
     firstName:{
         type: DataTypes.STRING,
         allowNull: false,

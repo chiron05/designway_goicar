@@ -3,9 +3,6 @@ const db=require('../config/db.js')
 
 const DropCustomer=db.define('dropcustomer',{
     _id: {
-        // type: DataTypes.INTEGER,
-        // autoIncrement: true,
-        // primaryKey: true
         type: DataTypes.UUID,
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
@@ -47,12 +44,11 @@ const DropCustomer=db.define('dropcustomer',{
         type: DataTypes.BOOLEAN,
         defaultValue:false
     }
-    // TODO:- Fuel is pending
-
+   
 })
 
 DropCustomer.sync({
-    // alter:true
+  
 })
 module.exports=DropCustomer
 

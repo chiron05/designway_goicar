@@ -6,7 +6,6 @@ const shortUrl = require("../Models/shortUrl.model");
 const { formResponse } = require("../Utils/helper");
 
 exports.userDetails=async(req,res)=>{
-
     try {
         const result= await shortUrl.findOne({
             where:{
@@ -15,10 +14,23 @@ exports.userDetails=async(req,res)=>{
         })
         if(result){
             let userDetails={}
+
+            const booking_details=await Booking.findOne({
+                where:{
+                    _id:result.bookingid
+                },
+                attributes:["customer_id"]
+            })
+
+            if(!booking_details){
+                return  res.status(httpStatusCodes[404].code)
+                .json(formResponse(httpStatusCodes[404].code, "Booking ID is InValid"))
+            }
+
             const CustomerDetails=await Customer.findOne({
                 attributes:['_id','firstName','lastName','email','phoneNumber'],
                 where:{
-                    booking_id:result.bookingid
+                    _id:booking_details.dataValues.customer_id
                 }
             })
            
@@ -28,18 +40,21 @@ exports.userDetails=async(req,res)=>{
                 }
             })
 
-            const PaymentDetails=await Payment.findOne({
-                where:{
-                    booking_id:result.bookingid
-                }
-            })
+            // const PaymentDetails=await Payment.findOne({
+            //     where:{
+            //         booking_id:result.bookingid
+            //     }
+            // })
 
+            console.log(CustomerDetails)
+            console.log(BookingDetails)
+            
 
-          if(CustomerDetails && BookingDetails && PaymentDetails){
+          if(CustomerDetails && BookingDetails){
             userDetails={
                 ...CustomerDetails.dataValues,
                 ...BookingDetails.dataValues,
-                ...PaymentDetails.dataValues
+               
             }
             console.log(userDetails)
             res.render('pages/home',{
@@ -49,7 +64,7 @@ exports.userDetails=async(req,res)=>{
           }
         }
 
-        res.status(httpStatusCodes[404].code).json(formResponse(httpStatusCodes[404].code))
+       return res.status(httpStatusCodes[404].code).json(formResponse(httpStatusCodes[404].code))
 
 
        

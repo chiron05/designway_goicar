@@ -3,7 +3,7 @@ const { joiPasswordExtendCore } = require('joi-password');
 
 const createVehicleSchema = Joi.object({
     // id: Joi.string().min(36).required(),
-    number: Joi.number().required(),
+    number: Joi.string().required(),
     make: Joi.string().required(),
     type: Joi.string().required(),
     transmission: Joi.string().required(),
@@ -22,7 +22,7 @@ const createVehicleSchema = Joi.object({
 )
 const updateVehicleSchema = Joi.object(
     {
-        number: Joi.number(),
+        number: Joi.string(),
         make: Joi.string(),
         type: Joi.string(),
         transmission: Joi.string(),

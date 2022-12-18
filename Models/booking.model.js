@@ -14,6 +14,10 @@ const Booking=db.define('booking',{
         primaryKey: true,
         allowNull: false,
       },
+      customer_id:{
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
      vehicle_id:{
         type: DataTypes.UUID,
         allowNull: false,

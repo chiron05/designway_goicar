@@ -32,7 +32,8 @@ exports.confirmBooking=async(req,res)=>{
        const bookingdetails=await Booking.findOne({
         where:{
             _id:req.query.bookingId,
-            isDeleted:false
+            isDeleted:false,
+            booking_status:'pending'
         }
        })
      if(bookingdetails){
@@ -46,7 +47,7 @@ exports.confirmBooking=async(req,res)=>{
                 "Url":`http://localhost:3000/shorturl/${uniqueID}`
             }))    
         } catch (error) {
-            console.log(error)
+           
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))
         }
      }
@@ -69,14 +70,13 @@ exports.updateVehicleBooking=async(req,res)=>{
     }
     const {error,value}=updateBookingSchema.validate(validationObject);
     if(error){
-        console.log(error)
       return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
     }
     else{
         try {
             Booking.update(
                  req.body ,
-                { where: { _id: req.params.id ,isDeleted:false} }
+                { where: { _id: req.params.id ,isDeleted:false, booking_status:'pending'} }
               )
                 .then(result =>{
                     if(result[0]){
@@ -98,10 +98,13 @@ exports.updateVehicleBooking=async(req,res)=>{
 }
 
 
+
+
 exports.createVehicleBooking=async(req,res)=>{
 
     const {error,value}=createBookingSchema.validate(
         {
+            customer_id:req.body.customer_id,
             vehicle_id:req.body.vehicle_id,
             pickup_date:req.body.pickup_date,
             dropoff_date:req.body.dropoff_date,
@@ -112,12 +115,23 @@ exports.createVehicleBooking=async(req,res)=>{
         }
     );
     if(error){
-        console.log(error)
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
     }
     else{
         try {
+
+            const customer=await Customer.findOne({
+                where:{
+                    _id:req.body.customer_id
+                },
+                attributes:["_id"]
+            })
+
+            if(!customer){
+                return   res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Customer ID is Invalid"));
+            }
             let data= Booking.build({
+                customer_id:req.body.customer_id,
                 vehicle_id:req.body.vehicle_id,
                 pickup_date:req.body.pickup_date,
                 pickup_time:req.body.pickup_time,
@@ -134,20 +148,10 @@ exports.createVehicleBooking=async(req,res)=>{
                 res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,data.error))
             }
             else{
-                let customer=await Customer.update({booking_id:data._id},{
-                    where:{
-                        _id:req.body.customer_id,isDeleted:false
-                    }
-                })
-               
-                if(!customer[0]){
-                    res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Unable to create Booking for customer"))
-                    return
-                }
                 res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,data))
             }
        } catch (error) {
-        console.log(error)
+      
         res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code,error))
        }
     }
@@ -170,6 +174,19 @@ exports.updatepickup=async(req,res)=>{
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
     }else{
         try {
+            const cancelledBooking=await Booking.findOne({
+                where:{
+                    _id:req.params.id,
+                    booking_status:'cancelled'
+                }
+            })
+
+            if(cancelledBooking){
+                return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`Booking for this pickup is already cancelled`))
+            }
+
+           
+
             PickCustomer.update(
                  req.body ,
                 { where: { booking_id: req.params.id,isDeleted:false } }
@@ -187,6 +204,7 @@ exports.updatepickup=async(req,res)=>{
                     res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,err))
                 )
         } catch (error) {
+            console.log(error)
             res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code,error))
         }
     }
@@ -211,15 +229,26 @@ exports.pickup=async(req,res)=>{
                     isDeleted:false
                 }
             })
-         
+            
+            const booking_details=await Booking.findOne({
+                where:{
+                    _id:req.body.booking_id,
+                    booking_status:"pending"
+                },
+                attributes:["customer_id"]
+            })
+
+            if(!booking_details){
+                return  res.status(httpStatusCodes[404].code)
+                .json(formResponse(httpStatusCodes[404].code, "Booking ID is InValid"))
+            }
             const customerDetails=await Customer.findOne({
                 attributes:["email","phoneNumber"],
                 where:{
-                    booking_id:req.body.booking_id,
+                    _id:booking_details.dataValues.customer_id,
                     isDeleted:false
                 }
-            })
-            
+            })  
 
             if(!DriverDetails|| !customerDetails){
                 
@@ -242,27 +271,25 @@ exports.pickup=async(req,res)=>{
         const CustomerWhatAppError= await whatsappNotify('having this ride',customerDetails.phoneNumber);
         const DriverEmailError=await emailNotify(DriverDetails.email,'subject','having this ride');
         const DriverWhatAppError= await whatsappNotify('having this ride',DriverDetails.phone_number);
-        if(CustomerEmailError || CustomerWhatAppError||DriverEmailError||DriverWhatAppError){
-            res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, {
-                "DriverEmailError":DriverEmailError,
-                "DriverWhatsAppError":DriverWhatAppError,
-                "CustomerEmailError":CustomerEmailError,
-                "CustomerWhatAppError":CustomerWhatAppError
-            }))
-            return;
-        }
-        else{
+        // if(CustomerEmailError || CustomerWhatAppError||DriverEmailError||DriverWhatAppError){
+        //     res.status(httpStatusCodes[404].code)
+        //     .json(formResponse(httpStatusCodes[404].code, {
+        //         "DriverEmailError":DriverEmailError,
+        //         "DriverWhatsAppError":DriverWhatAppError,
+        //         "CustomerEmailError":CustomerEmailError,
+        //         "CustomerWhatAppError":CustomerWhatAppError
+        //     }))
+        //     return;
+        // }
+        // else{
             res.status(httpStatusCodes[200].code)
-            .json(formResponse(httpStatusCodes[404].code, "Driver informed successfully"))
+            .json(formResponse(httpStatusCodes[404].code, "Driver informed successfully for pickup"))
             return;
-        }
+        // }
     }
     catch(error)
-    {
-       
-        res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code,error))
-        
+    {   
+        res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code,error))   
     }
     }
    
@@ -275,10 +302,22 @@ exports.updatedropoff=async(req,res)=>{
     const {error,value}=pickUpDropOffSchema.validate(req.body);
     
     if(error){
+       
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
     }
     else{
         try {
+            const cancelledBooking=await Booking.findOne({
+                where:{
+                    _id:req.params.id,
+                    booking_status:'cancelled'
+                }
+            })
+
+            if(cancelledBooking){
+                return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`Booking for this dropoff is already cancelled`))
+            }
+
             DropCustomer.update(
                  req.body ,
                 { where: { booking_id: req.params.id,isDeleted:false } }
@@ -317,13 +356,25 @@ exports.dropoff=async(req,res,next)=>{
                     id:req.body.driverId,isDeleted:false
                 }
             })
-         
+            const booking_details=await Booking.findOne({
+                where:{
+                    _id:req.body.booking_id,
+                    booking_status:"pending"
+                },
+                attributes:["customer_id"]
+            })
+
+            if(!booking_details){
+                return  res.status(httpStatusCodes[404].code)
+                .json(formResponse(httpStatusCodes[404].code, "Booking ID is InValid"))
+            }
             const customerDetails=await Customer.findOne({
                 attributes:["email","phoneNumber"],
                 where:{
-                    booking_id:req.body.booking_id,isDeleted:false
+                    _id:booking_details.dataValues.customer_id,
+                    isDeleted:false
                 }
-            })
+            })  
           
             if(!DriverDetails|| !customerDetails){
                 res.status(httpStatusCodes[404].code)
@@ -345,25 +396,25 @@ exports.dropoff=async(req,res,next)=>{
         const CustomerWhatAppError= await whatsappNotify('kyaa bhaiii',customerDetails.phoneNumber);
         const DriverEmailError=await emailNotify(DriverDetails.email,'subject','yo having this ride');
         const DriverWhatAppError= await whatsappNotify('kyaa bhaiii',DriverDetails.phone_number);
-        if(CustomerEmailError || CustomerWhatAppError||DriverEmailError||DriverWhatAppError){
-            res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, {
-                "DriverEmailError":DriverEmailError,
-                "DriverWhatsAppError":DriverWhatAppError,
-                "CustomerEmailError":CustomerEmailError,
-                "CustomerWhatAppError":CustomerWhatAppError
-            }))
+        // if(CustomerEmailError || CustomerWhatAppError||DriverEmailError||DriverWhatAppError){
+        //     res.status(httpStatusCodes[404].code)
+        //     .json(formResponse(httpStatusCodes[404].code, {
+        //         "DriverEmailError":DriverEmailError,
+        //         "DriverWhatsAppError":DriverWhatAppError,
+        //         "CustomerEmailError":CustomerEmailError,
+        //         "CustomerWhatAppError":CustomerWhatAppError
+        //     }))
+        //     return;
+        // }
+        // else{
+           return res.status(httpStatusCodes[200].code)
+            .json(formResponse(httpStatusCodes[200].code, "Driver informed successfully for dropoff"))
             return;
-        }
-        else{
-            res.status(httpStatusCodes[200].code)
-            .json(formResponse(httpStatusCodes[200].code, "Driver informed successfully"))
-            return;
-        }
+        // }
     }
     catch(error)
     {
-        res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code,error))    
+      return  res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code,error))    
     }
     }
 }
@@ -371,63 +422,33 @@ exports.dropoff=async(req,res,next)=>{
 
 
 exports.bookingCancellation=async(req,res)=>{
-
+    
     const {error,value}=bookingCancellationSchema.validate({
         booking_id:req.params.id
-    }
-        );
+    });
     
     if(error){
-        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
-    }
-    else
-    {
-
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
     }
 
-    const bookingDetails=await Booking.findOne({
-        where:{
-            _id:req.params.id
+    try {
+        const bookingCancellation=await Booking.update({
+            booking_status:"cancelled"
+        },{
+            where:{
+                _id:req.params.id,
+                booking_status:"pending"
+            }
+        })
+        if(bookingCancellation[0]){
+            return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,"Booking Cancelled successfully"))
         }
-    })
-   
-    const paymentDetails=await Payment.findOne({
-        where:{
-            booking_id:req.params.id
+        else{
+            return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Booking Cancellation unSuccessfull"))
         }
-    })
+    } catch (error) {
+        return  res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code,error))    
+    }
 
-    
-    const token = crypto.randomBytes(8).toString("hex");
-    const hashString = 'JPM7Fg' //store in in different file
-    + '|' + paymentDetails.txnid
-    + '|' + 'cancel_refund_transaction'
-    + '|' + paymentDetails.mihpayid
-    + 'TuxqAugd'
 
-   const sha = new jsSHA('SHA-512', "TEXT"); 
-   sha.update(hashString);
-   const hash = sha.getHash("HEX");
-
-   console.log(hash)
-    request.post({
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        url: 'https://test.payu.in/merchant/postservice?form=2-H',
-        form: {
-            key:"JPM7Fg",
-            command:"cancel_refund_transaction",
-            var1:paymentDetails.mihpayid,
-            var2:token,
-            var3:paymentDetails.total,
-            hash:hash
-        }
-    }, function (error, httpRes, body) {
-        if (error)
-           console.log(error)
-        res.send(body)
-    })
-  
 }

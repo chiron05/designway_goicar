@@ -23,10 +23,9 @@ const User = db.define('User', {
         allowNull: false
     },
     phone_number: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(),
         allowNull: false,
         unique: true,
-
     },
     email: {
         type: DataTypes.STRING,

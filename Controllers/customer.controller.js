@@ -96,7 +96,7 @@ exports.updateCustomer=async(req,res,next)=>{
 
 exports.getCustomer=async(req,res)=>{
     Customer.findAll({
-        attributes:["_id","booking_id","firstName","lastName","email","phoneNumber","idProofURL"],
+        attributes:["_id","firstName","lastName","email","phoneNumber","idProofURL"],
         where:{
             isDeleted:false
         }
