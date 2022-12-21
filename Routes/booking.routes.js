@@ -1,24 +1,29 @@
-const express=require('express')
-const upload=require('../Utils/multer')
+const express = require('express')
+const upload = require('../Utils/multer')
 
-const { pickup, dropoff, createVehicleBooking, confirmBooking, updateVehicleBooking, updatepickup, updatedropoff, bookingCancellation } = require('../Controllers/booking.controller')
-const bookingRoute=express.Router()
+const { pickup, dropoff, createVehicleBooking, confirmBooking, updateVehicleBooking, updatepickup, updatedropoff, bookingCancellation, getBooking, getAllBooking } = require('../Controllers/booking.controller')
+const bookingRoute = express.Router()
 
 
-bookingRoute.post('/vehicle-booking',createVehicleBooking)
-bookingRoute.put('/vehicle-booking/:id',updateVehicleBooking)
+bookingRoute.post('/vehicle-booking', createVehicleBooking)
+bookingRoute.get('/vehicle-booking', getAllBooking)
 
-bookingRoute.post('/vehicle-booking/pickup',pickup)
-bookingRoute.put('/vehicle-booking/pickup/:id',updatepickup)
-
-bookingRoute.post('/vehicle-booking/dropoff',dropoff)
-bookingRoute.put('/vehicle-booking/dropoff/:id',updatedropoff)
-
-bookingRoute.post('/confirmBooking',confirmBooking)
-
-bookingRoute.get('/vehicle-booking/cancellation/:id',bookingCancellation)
+bookingRoute.put('/vehicle-booking/:id', updateVehicleBooking)
+bookingRoute.get('/vehicle-booking/:id', getBooking)//me
 
 
 
+bookingRoute.post('/vehicle-booking/pickup', pickup)
+bookingRoute.put('/vehicle-booking/pickup/:id', updatepickup)
 
-module.exports=bookingRoute
+bookingRoute.post('/vehicle-booking/dropoff', dropoff)
+bookingRoute.put('/vehicle-booking/dropoff/:id', updatedropoff)
+
+bookingRoute.post('/confirmBooking', confirmBooking)
+
+bookingRoute.get('/vehicle-booking/cancellation/:id', bookingCancellation)
+
+
+
+
+module.exports = bookingRoute
