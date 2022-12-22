@@ -1,8 +1,10 @@
 const { DataTypes }=require('sequelize')
 const db=require('../config/db.js')
+const dropoffDriversBooking = require('./dropoffDriversBooking.model.js')
+const pickupDriversBooking = require('./pickupDriversBooking.model.js')
 
 const Driver=db.define('driver',{
-
+   
     id:{
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
@@ -50,6 +52,19 @@ const Driver=db.define('driver',{
         defaultValue:false
     }
 })
+
+Driver.hasOne(pickupDriversBooking,{
+    foreignKey:'driver_id',
+    onDelete:"CASCADE",
+    onUpdate:"CASCADE"
+})
+
+Driver.hasOne(dropoffDriversBooking,{
+    foreignKey:'driver_id',
+    onDelete:"CASCADE",
+    onUpdate:"CASCADE"
+})
+
 
 Driver.sync({
     // alter:true

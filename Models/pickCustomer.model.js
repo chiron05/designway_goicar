@@ -1,5 +1,6 @@
 const { DataTypes }=require('sequelize')
-const db=require('../config/db.js')
+const db=require('../config/db.js');
+const pickupDriversBooking = require('./pickupDriversBooking.model.js');
 
 const PickCustomer=db.define('pickcustomer',{
     _id: {
@@ -50,6 +51,12 @@ const PickCustomer=db.define('pickcustomer',{
     }
 
 })
+
+PickCustomer.hasMany(pickupDriversBooking,{
+    foreignKey:'pickup_id',
+    onDelete:"CASCADE",
+    onUpdate:"CASCADE"
+});
 
 PickCustomer.sync({
     // alter:true

@@ -12,8 +12,4 @@ const DB=new Sequelize(process.env.db,process.env.User,process.env.pass,{
  
 })
 
-
-
-
-
   module.exports=DB

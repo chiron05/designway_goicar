@@ -81,8 +81,7 @@ Vendor.hasMany(Vehicle,{
     
 })
 Vehicle.belongsTo(Vendor,{
-    foreignKey:'owner',
-    
+    foreignKey:'owner', 
 })
 
 Vehicle.sync({

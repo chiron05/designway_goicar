@@ -17,6 +17,13 @@ const axios = require('axios')
 const jsSHA = require("jssha");
 const { confirmBookingSchema, updateBookingSchema, createBookingSchema, pickUpDropOffSchema, updatePickDropSchema, bookingCancellationSchema } = require('../Joi/booking.validation')
 const { model } = require('mongoose')
+const dropoffDriversBooking = require('../Models/dropoffDriversBooking.model')
+const pickupDriversBooking = require('../Models/pickupDriversBooking.model')
+const db=require('../config/db')
+const Vendor = require('../Models/Vendor')
+const Vehicle = require('../Models/Vehicle')
+const { YearlyInstance } = require('twilio/lib/rest/api/v2010/account/usage/record/yearly')
+
 
 
 exports.confirmBooking = async (req, res) => {
@@ -452,109 +459,368 @@ exports.bookingCancellation = async (req, res) => {
 
 }
 
-exports.getBooking = async (req, res) => {
-    // console.log(req.params.id)
-    try {
-        const booking_details = await Booking.findOne({
-            where: {
-                _id: req.params.id,
+const getBookingById=async(booking_id)=>{
+    let result={
 
+    }
+    try {
+        const bookingDetails=await Booking.findOne({
+            where:{
+                _id: booking_id,
+                isDeleted:false
             }
         })
         const customer_details = await Customer.findOne({
-            attributes: ["firstName", "lastName", "email", "phoneNumber"],
+                        attributes: ["firstName", "lastName", "email", "phoneNumber"],
+                        isDeleted: false,
+                        where: {
+                            _id: bookingDetails.dataValues.customer_id,
+            
+            
+                        }
+                    })
+        const vehicle_details=await Vehicle.findOne({
+            attributes: ["id", "number", "make", "type","transmission","class","registration_no","colour","image","owner","on_goicar_since","rc_Book","pollution_certificate","insurance","RSA"],
             isDeleted: false,
             where: {
-                _id: booking_details.dataValues.customer_id,
+                id: bookingDetails.dataValues.vehicle_id,
+            }
+        })
+      
 
-
+        const vendorDetails=await Vendor.findOne({
+            attributes: ["id", "full_name","address","city","state","pincode","email","phone_number","alternate_number","id_proof","id_no"],
+            isDeleted: false,
+            where: {
+                id: vehicle_details.dataValues.owner,
             }
         })
 
+       
         const pickup_details = await PickCustomer.findOne({
-            // include: [{ model: Driver }],
-            attributes: ["driver", "contact_num", "vehicle_condition"],
-            where: {
-                booking_id: req.params.id,
-                isDeleted: false
-            },
-
-        })
-        const driver_details_pickup = await Driver.findOne({
-
-            where: {
-                id: pickup_details.dataValues.driver
-            }
-        })
-
+                        attributes: ["driver", "contact_num", "vehicle_condition"],
+                        where: {
+                            booking_id: booking_id,
+                            isDeleted: false
+                        },
+            
+                    })
         const dropoff_details = await DropCustomer.findOne({
-            attributes: ["driver", "contact_num", "vehicle_condition"],
-            where: {
-                booking_id: req.params.id,
-                isDeleted: false
+                        attributes: ["driver", "contact_num", "vehicle_condition"],
+                        where: {
+                            booking_id: booking_id,
+                            isDeleted: false
+                        }
+                    })
+
+      
+        // const additionalDropOffDriverDetails =await db.query(`SELECT * FROM drivers WHERE drivers.id IN(SELECT dropoffdriversbookings.driver_id FROM bookings,dropoffdriversbookings WHERE bookings._id="${booking_id}");`)
+       
+
+        // const additionalPickUpDriverDetails =await db.query(`SELECT * FROM drivers WHERE drivers.id IN(SELECT pickupdriversbookings.driver_id FROM bookings,pickupdriversbookings WHERE bookings._id="${booking_id}");`)
+        if(pickup_details && dropoff_details){
+            result={
+                "bookingDetails":{
+                    customer_id: bookingDetails.customer_id,
+                    vehicle_id: bookingDetails.vehicle_id,
+                    pickup_date: bookingDetails.pickup_date,
+                    pickup_time: bookingDetails.pickup_time,
+                    dropoff_date: bookingDetails.dropoff_date,
+                    dropoff_time: bookingDetails.dropoff_time,
+                    vehicle_type: bookingDetails.vehicle_type,
+                    pickup_location: bookingDetails.pickup_location,
+                    dropoff_location: bookingDetails.dropoff_location,
+                    duration: bookingDetails.duration,
+                    booking_status: bookingDetails.booking_status
+                },
+                "customer_details":{
+                    firstName:customer_details.firstName,
+                    lastName:customer_details.lastName,
+                    email:customer_details.email,
+                    phoneNumber:customer_details.phoneNumber
+                },
+                "vehicle_details":{
+                    id:vehicle_details.id,
+                    number:vehicle_details.number,
+                    make:vehicle_details.make,
+                    type:vehicle_details.type,
+                    transmission:vehicle_details.transmission,
+                    registration_no:vehicle_details.registration_no,
+                    colour:vehicle_details.colour,
+                    image:vehicle_details.image,
+                    owner:vehicle_details.owner,
+                    on_goicar_since:vehicle_details.on_goicar_since,
+                    rc_Book:vehicle_details.rc_Book,
+                    pollution_certificate:vehicle_details.pollution_certificate,
+                    insurance:vehicle_details.insurance,
+                    RSA:vehicle_details.RSA
+                },
+                "vendorDetails":{
+                    id:vendorDetails.id,
+                    full_name:vendorDetails.full_name,
+                    address:vendorDetails.address,
+                    city:vendorDetails.city,
+                    state:vendorDetails.state,
+                    pincode:vendorDetails.pincode,
+                    email:vehicle_details.email,
+                    phone_number:vendorDetails.phone_number,
+                    alternate_number:vendorDetails.alternate_number,
+                    id_proof:vendorDetails.id_proof,
+                    id_no:vendorDetails.id_no
+                }
+                ,
+                "pickup_details":{
+                        driver:pickup_details.driver,
+                        contact_num:pickup_details.contact_num,
+                        vehicle_condition:pickup_details.vehicle_condition
+                },
+                "dropoff_details":{
+                    driver:dropoff_details.driver,
+                    contact_num:dropoff_details.contact_num,
+                    vehicle_condition:dropoff_details.vehicle_condition
+                },
+                // "additionalDropOffDriverDetails":{
+                //     ...additionalDropOffDriverDetails[0]
+                // },
+                // "additionalPickUpDriverDetails":{
+                //     ...additionalPickUpDriverDetails[0]
+                // }
             }
-        })
-
-        const driver_details_dropoff = await Driver.findOne({
-
-            where: {
-                id: dropoff_details.dataValues.driver
-            }
-        })
-
-        let bookingdata = {
-
-            bookingDetails: {
-                customer_id: booking_details.customer_id,
-                vehicle_id: booking_details.vehicle_id,
-                pickup_date: booking_details.pickup_date,
-                pickup_time: booking_details.pickup_time,
-                dropoff_date: booking_details.dropoff_date,
-                dropoff_time: booking_details.dropoff_time,
-                vehicle_type: booking_details.vehicle_type,
-                pickup_location: booking_details.pickup_location,
-                dropoff_location: booking_details.dropoff_location,
-                duration: booking_details.duration,
-                booking_status: booking_details.booking_status
-
-            },
-            customer_details: {
-                firstName: customer_details.firstName,
-                lastName: customer_details.lastName,
-                email: customer_details.email,
-                phoneNumber: customer_details.phoneNumber
-            },
-
-            pickup_details: {
-                driverName: driver_details_pickup.full_name,
-                driverContact: pickup_details.contact_num,
-                vehicle_condition: pickup_details.vehicle_condition,
-                video: pickup_details.video
-            },
-            dropoff_details: {
-                driverName: driver_details_dropoff.full_name,
-                driverContact: dropoff_details.contact_num,
-                vehicle_condition: dropoff_details.vehicle_condition,
-                video: dropoff_details.video
-            }
-
+            return result;
         }
-        return res.status(httpStatusCodes[200].code)
-            .json(formResponse(httpStatusCodes[200].code, bookingdata))
-
-
-    }
-    catch (err) {
-        return res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, err))
+        else{
+            result={
+                "bookingDetails":{
+                    _id:bookingDetails._id,
+                    customer_id: bookingDetails.customer_id,
+                    vehicle_id: bookingDetails.vehicle_id,
+                    pickup_date: bookingDetails.pickup_date,
+                    pickup_time: bookingDetails.pickup_time,
+                    dropoff_date: bookingDetails.dropoff_date,
+                    dropoff_time: bookingDetails.dropoff_time,
+                    vehicle_type: bookingDetails.vehicle_type,
+                    pickup_location: bookingDetails.pickup_location,
+                    dropoff_location: bookingDetails.dropoff_location,
+                    duration: bookingDetails.duration,
+                    booking_status: bookingDetails.booking_status
+                },
+                "customer_details":{
+                    firstName:customer_details.firstName,
+                    lastName:customer_details.lastName,
+                    email:customer_details.email,
+                    phoneNumber:customer_details.phoneNumber
+                },
+                "vehicle_details":{
+                    id:vehicle_details.id,
+                    number:vehicle_details.number,
+                    make:vehicle_details.make,
+                    type:vehicle_details.type,
+                    transmission:vehicle_details.transmission,
+                    registration_no:vehicle_details.registration_no,
+                    colour:vehicle_details.colour,
+                    image:vehicle_details.image,
+                    owner:vehicle_details.owner,
+                    on_goicar_since:vehicle_details.on_goicar_since,
+                    rc_Book:vehicle_details.rc_Book,
+                    pollution_certificate:vehicle_details.pollution_certificate,
+                    insurance:vehicle_details.insurance,
+                    RSA:vehicle_details.RSA
+                },
+                "vendorDetails":{
+                    id:vendorDetails.id,
+                    full_name:vendorDetails.full_name,
+                    address:vendorDetails.address,
+                    city:vendorDetails.city,
+                    state:vendorDetails.state,
+                    pincode:vendorDetails.pincode,
+                    email:vehicle_details.email,
+                    phone_number:vendorDetails.phone_number,
+                    alternate_number:vendorDetails.alternate_number,
+                    id_proof:vendorDetails.id_proof,
+                    id_no:vendorDetails.id_no
+                }
+                ,
+                "pickup_details":{
+                },
+                "dropoff_details":{
+                },
+                // "additionalDropOffDriverDetails":{
+                //     ...additionalDropOffDriverDetails[0]
+                // },
+                // "additionalPickUpDriverDetails":{
+                //     ...additionalPickUpDriverDetails[0]
+                // }
+            }
+            return result;
+        }
+       
+    } catch (error) {
+        console.log(error)
+        return 0
     }
 }
 
-exports.getAllBooking = async (req, res) => {
-    await Booking.findAll().then(result => {
-        res.status(httpStatusCodes[200].code)
-            .json(formResponse(httpStatusCodes[200].code, result))
-    }).catch(err => {
-        res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, err))
+exports.getBooking = async (req, res)=>{
+    const bookingDetails=await Booking.findOne({
+        where:{
+            _id: req.params.id,
+            isDeleted:false
+        }
     })
+    if(bookingDetails){
+        const result= await getBookingById(req.params.id);
+        if(result){
+           
+            return res.status(httpStatusCodes[200].code)
+            .json(formResponse(httpStatusCodes[200].code, result))
+        }
+        else{
+            return res.status(httpStatusCodes[500].code)
+            .json(formResponse(httpStatusCodes[500].code))
+        }
+
+    }else{
+        return res.status(httpStatusCodes[400].code)
+        .json(formResponse(httpStatusCodes[400].code,`No Booking is available for bookingID ${req.params.id}`))
+    }
+
 }
+
+exports.getAllBooking=async(req,res)=>{
+    let skip=5*(req.query.page);
+    let result=[]
+    try {
+        const allBookingID=await Booking.findAll({
+            attributes:["_id"],
+            limit:5,
+            offset:skip
+        })
+    let i=0;
+    let max_length=allBookingID.length
+
+    for(let j=0;j<max_length;j++){
+     const booking=await getBookingById(allBookingID[j].dataValues._id)
+     result=[
+      booking,
+        ...result
+     ]
+    }
+    return res.status(httpStatusCodes[200].code)
+    .json(formResponse(httpStatusCodes[200].code,result))
+           
+    } catch (error) {
+        return res.status(httpStatusCodes[500].code)
+        .json(formResponse(httpStatusCodes[500].code,error))
+    }
+  
+
+}
+
+// exports.getBooking = async (req, res) => {
+//     // console.log(req.params.id)
+//     try {
+//         const booking_details = await Booking.findOne({
+//             where: {
+//                 _id: req.params.id,
+
+//             }
+//         })
+//         const customer_details = await Customer.findOne({
+//             attributes: ["firstName", "lastName", "email", "phoneNumber"],
+//             isDeleted: false,
+//             where: {
+//                 _id: booking_details.dataValues.customer_id,
+
+
+//             }
+//         })
+
+//         const pickup_details = await PickCustomer.findOne({
+//             // include: [{ model: Driver }],
+//             attributes: ["driver", "contact_num", "vehicle_condition"],
+//             where: {
+//                 booking_id: req.params.id,
+//                 isDeleted: false
+//             },
+
+//         })
+//         const driver_details_pickup = await Driver.findOne({
+
+//             where: {
+//                 id: pickup_details.dataValues.driver
+//             }
+//         })
+
+        // const dropoff_details = await DropCustomer.findOne({
+        //     attributes: ["driver", "contact_num", "vehicle_condition"],
+        //     where: {
+        //         booking_id: req.params.id,
+        //         isDeleted: false
+        //     }
+        // })
+
+//         const driver_details_dropoff = await Driver.findOne({
+
+//             where: {
+//                 id: dropoff_details.dataValues.driver
+//             }
+//         })
+
+//         let bookingdata = {
+
+//             bookingDetails: {
+                // customer_id: booking_details.customer_id,
+                // vehicle_id: booking_details.vehicle_id,
+                // pickup_date: booking_details.pickup_date,
+                // pickup_time: booking_details.pickup_time,
+                // dropoff_date: booking_details.dropoff_date,
+                // dropoff_time: booking_details.dropoff_time,
+                // vehicle_type: booking_details.vehicle_type,
+                // pickup_location: booking_details.pickup_location,
+                // dropoff_location: booking_details.dropoff_location,
+                // duration: booking_details.duration,
+                // booking_status: booking_details.booking_status
+
+//             },
+//             customer_details: {
+//                 firstName: customer_details.firstName,
+//                 lastName: customer_details.lastName,
+//                 email: customer_details.email,
+//                 phoneNumber: customer_details.phoneNumber
+//             },
+
+//             pickup_details: {
+//                 driverName: driver_details_pickup.full_name,
+//                 driverContact: pickup_details.contact_num,
+//                 vehicle_condition: pickup_details.vehicle_condition,
+//                 video: pickup_details.video
+//             },
+//             dropoff_details: {
+//                 driverName: driver_details_dropoff.full_name,
+//                 driverContact: dropoff_details.contact_num,
+//                 vehicle_condition: dropoff_details.vehicle_condition,
+//                 video: dropoff_details.video
+//             }
+
+//         }
+//         return res.status(httpStatusCodes[200].code)
+//             .json(formResponse(httpStatusCodes[200].code, bookingdata))
+
+
+//     }
+//     catch (err) {
+//         return res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, err))
+//     }
+// }
+
+
+
+// exports.getAllBooking = async (req, res) => {
+//     await Booking.findAll().then(result => {
+//         res.status(httpStatusCodes[200].code)
+//             .json(formResponse(httpStatusCodes[200].code, result))
+//     }).catch(err => {
+//         res.status(httpStatusCodes[404].code)
+//             .json(formResponse(httpStatusCodes[404].code, err))
+//     })
+// }

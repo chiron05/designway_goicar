@@ -2,7 +2,9 @@ const { DataTypes }=require('sequelize')
 const db=require('../config/db.js')
 const Customer = require('./customer.model.js')
 const DropCustomer = require('./dropCustomer.model.js')
+const dropoffDriversBooking = require('./dropoffDriversBooking.model.js')
 const PickCustomer = require('./pickCustomer.model.js')
+const pickupDriversBooking = require('./pickupDriversBooking.model.js')
 const shortUrl = require('./shortUrl.model.js')
 
 
@@ -94,6 +96,20 @@ Booking.hasOne(PickCustomer,{
     onDelete:"CASCADE",
     onUpdate:"CASCADE"
 });
+
+Booking.hasMany(pickupDriversBooking,{
+    foreignKey:'booking_id',
+    onDelete:"CASCADE",
+    onUpdate:"CASCADE"
+});
+
+Booking.hasMany(dropoffDriversBooking,{
+    foreignKey:'booking_id',
+    onDelete:"CASCADE",
+    onUpdate:"CASCADE"
+});
+
+
 Customer.belongsTo(Booking,{
     onDelete:"CASCADE",
     onUpdate:"CASCADE"

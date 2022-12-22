@@ -1,5 +1,6 @@
 const { DataTypes }=require('sequelize')
 const db=require('../config/db.js')
+const dropoffDriversBooking = require('./dropoffDriversBooking.model.js')
 
 const DropCustomer=db.define('dropcustomer',{
     _id: {
@@ -11,7 +12,6 @@ const DropCustomer=db.define('dropcustomer',{
     booking_id: {
         type: DataTypes.UUID,
         unique:true
-   
     },
     driver: {
         type: DataTypes.STRING,
@@ -45,6 +45,12 @@ const DropCustomer=db.define('dropcustomer',{
         defaultValue:false
     }
    
+})
+
+DropCustomer.hasMany(dropoffDriversBooking,{
+    foreignKey:'dropoff_id',
+    onDelete:"CASCADE",
+    onUpdate:"CASCADE"
 })
 
 DropCustomer.sync({
