@@ -23,6 +23,7 @@ const db=require('../config/db')
 const Vendor = require('../Models/Vendor')
 const Vehicle = require('../Models/Vehicle')
 const { YearlyInstance } = require('twilio/lib/rest/api/v2010/account/usage/record/yearly')
+const { sms } = require('../services/sms')
 
 
 
@@ -132,7 +133,7 @@ exports.createVehicleBooking = async (req, res) => {
                 where: {
                     _id: req.body.customer_id
                 },
-                attributes: ["_id"]
+                attributes: ["_id","email"]
             })
 
             if (!customer) {
@@ -156,10 +157,15 @@ exports.createVehicleBooking = async (req, res) => {
                 res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, data.error))
             }
             else {
-                res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, data))
+                sms( req.body.customer_id,data._id);
+                // await emailNotify(customerDetails.email, 'subject', 'having this ride');
+                emailNotify(customer.email,"subject",`Booking Done Successfull. Click here: http://localhost:3000/track/${req.body.customer_id}/data._id`)
+                res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
+                    "Message":"Booking done successfully"
+                }))
             }
         } catch (error) {
-
+            console.log(error)
             res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, error))
         }
     }
@@ -715,112 +721,3 @@ exports.getAllBooking=async(req,res)=>{
   
 
 }
-
-// exports.getBooking = async (req, res) => {
-//     // console.log(req.params.id)
-//     try {
-//         const booking_details = await Booking.findOne({
-//             where: {
-//                 _id: req.params.id,
-
-//             }
-//         })
-//         const customer_details = await Customer.findOne({
-//             attributes: ["firstName", "lastName", "email", "phoneNumber"],
-//             isDeleted: false,
-//             where: {
-//                 _id: booking_details.dataValues.customer_id,
-
-
-//             }
-//         })
-
-//         const pickup_details = await PickCustomer.findOne({
-//             // include: [{ model: Driver }],
-//             attributes: ["driver", "contact_num", "vehicle_condition"],
-//             where: {
-//                 booking_id: req.params.id,
-//                 isDeleted: false
-//             },
-
-//         })
-//         const driver_details_pickup = await Driver.findOne({
-
-//             where: {
-//                 id: pickup_details.dataValues.driver
-//             }
-//         })
-
-        // const dropoff_details = await DropCustomer.findOne({
-        //     attributes: ["driver", "contact_num", "vehicle_condition"],
-        //     where: {
-        //         booking_id: req.params.id,
-        //         isDeleted: false
-        //     }
-        // })
-
-//         const driver_details_dropoff = await Driver.findOne({
-
-//             where: {
-//                 id: dropoff_details.dataValues.driver
-//             }
-//         })
-
-//         let bookingdata = {
-
-//             bookingDetails: {
-                // customer_id: booking_details.customer_id,
-                // vehicle_id: booking_details.vehicle_id,
-                // pickup_date: booking_details.pickup_date,
-                // pickup_time: booking_details.pickup_time,
-                // dropoff_date: booking_details.dropoff_date,
-                // dropoff_time: booking_details.dropoff_time,
-                // vehicle_type: booking_details.vehicle_type,
-                // pickup_location: booking_details.pickup_location,
-                // dropoff_location: booking_details.dropoff_location,
-                // duration: booking_details.duration,
-                // booking_status: booking_details.booking_status
-
-//             },
-//             customer_details: {
-//                 firstName: customer_details.firstName,
-//                 lastName: customer_details.lastName,
-//                 email: customer_details.email,
-//                 phoneNumber: customer_details.phoneNumber
-//             },
-
-//             pickup_details: {
-//                 driverName: driver_details_pickup.full_name,
-//                 driverContact: pickup_details.contact_num,
-//                 vehicle_condition: pickup_details.vehicle_condition,
-//                 video: pickup_details.video
-//             },
-//             dropoff_details: {
-//                 driverName: driver_details_dropoff.full_name,
-//                 driverContact: dropoff_details.contact_num,
-//                 vehicle_condition: dropoff_details.vehicle_condition,
-//                 video: dropoff_details.video
-//             }
-
-//         }
-//         return res.status(httpStatusCodes[200].code)
-//             .json(formResponse(httpStatusCodes[200].code, bookingdata))
-
-
-//     }
-//     catch (err) {
-//         return res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, err))
-//     }
-// }
-
-
-
-// exports.getAllBooking = async (req, res) => {
-//     await Booking.findAll().then(result => {
-//         res.status(httpStatusCodes[200].code)
-//             .json(formResponse(httpStatusCodes[200].code, result))
-//     }).catch(err => {
-//         res.status(httpStatusCodes[404].code)
-//             .json(formResponse(httpStatusCodes[404].code, err))
-//     })
-// }

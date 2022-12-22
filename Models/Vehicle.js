@@ -69,6 +69,11 @@ const Vehicle=db.define('vehicle',{
         type:DataTypes.STRING,
         allowNull:false
 },
+isBooked:{
+    type:DataTypes.STRING,
+    allowNull:false,
+    defaultValue:false
+},
 isDeleted:{
     type: DataTypes.BOOLEAN,
     defaultValue:false
