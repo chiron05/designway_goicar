@@ -111,6 +111,21 @@ exports.updateVehicleBooking = async (req, res) => {
 
 exports.createVehicleBooking = async (req, res) => {
 
+    const vehicleDetails=await Vehicle.findOne({
+        where:{
+            id:req.body.vehicle_id
+        },
+
+        attributes:["id","isBooked"]
+    })
+
+    if(!vehicleDetails){
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Vehicle ID is Invalid"));
+    }
+    if(vehicleDetails.isBooked){
+       return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Vehicle not available"))
+    }
+
     const { error, value } = createBookingSchema.validate(
         {
             customer_id: req.body.customer_id,
@@ -152,6 +167,15 @@ exports.createVehicleBooking = async (req, res) => {
                 duration: req.body.duration
             })
             await data.save();
+
+            const vehicleAvaibilityUpdation=await Vehicle.update({
+                isBooked:true
+            },{
+                where:{
+                    id:req.body.vehicle_id
+                },
+                attributes:["id"]
+            })
 
             if (data.errors) {
                 res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, data.error))
@@ -240,9 +264,16 @@ exports.pickup = async (req, res) => {
             const DriverDetails = await Driver.findOne({
                 where: {
                     id: req.body.driverId,
-                    isDeleted: false
+                    isDeleted: false,
+                    isAvailable:true
                 }
             })
+
+            if(!DriverDetails){
+                res.status(httpStatusCodes[400].code)
+                .json(formResponse(httpStatusCodes[400].code,  "Please provide valid Driver ID"))
+            return;
+            }
 
             const booking_details = await Booking.findOne({
                 where: {
@@ -253,8 +284,8 @@ exports.pickup = async (req, res) => {
             })
 
             if (!booking_details) {
-                return res.status(httpStatusCodes[404].code)
-                    .json(formResponse(httpStatusCodes[404].code, "Booking ID is InValid"))
+                return res.status(httpStatusCodes[400].code)
+                    .json(formResponse(httpStatusCodes[400].code, "Booking ID is InValid"))
             }
             const customerDetails = await Customer.findOne({
                 attributes: ["email", "phoneNumber"],
@@ -266,8 +297,8 @@ exports.pickup = async (req, res) => {
 
             if (!DriverDetails || !customerDetails) {
 
-                res.status(httpStatusCodes[404].code)
-                    .json(formResponse(httpStatusCodes[404].code, "No records Found"))
+                res.status(httpStatusCodes[400].code)
+                    .json(formResponse(httpStatusCodes[400].code,  "Please provide valid Data"))
                 return;
             }
 
@@ -280,6 +311,14 @@ exports.pickup = async (req, res) => {
                     vehicle_condition: req.body.vehicle_condition
                 }
             )
+            
+            const driverAvabilityUpdation=await Driver.update({
+                isAvailable:false
+            },{
+               where:{
+                id:req.body.driverId
+               }
+            })
 
             const CustomerEmailError = await emailNotify(customerDetails.email, 'subject', 'having this ride');
             const CustomerWhatAppError = await whatsappNotify('having this ride', customerDetails.phoneNumber);
@@ -302,11 +341,13 @@ exports.pickup = async (req, res) => {
             // }
         }
         catch (error) {
+            console.log(error)
             res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, error))
         }
     }
 
 }
+
 
 exports.updatedropoff = async (req, res) => {
     if (Object.keys(req.body).length === 0) {
@@ -366,9 +407,16 @@ exports.dropoff = async (req, res, next) => {
         try {
             const DriverDetails = await Driver.findOne({
                 where: {
-                    id: req.body.driverId, isDeleted: false
+                    id: req.body.driverId,
+                    isDeleted: false,
+                    isAvailable:true
                 }
             })
+            if(!DriverDetails){
+                res.status(httpStatusCodes[400].code)
+                .json(formResponse(httpStatusCodes[400].code,  "Please provide valid Driver ID"))
+            return;
+            }
             const booking_details = await Booking.findOne({
                 where: {
                     _id: req.body.booking_id,
@@ -378,8 +426,8 @@ exports.dropoff = async (req, res, next) => {
             })
 
             if (!booking_details) {
-                return res.status(httpStatusCodes[404].code)
-                    .json(formResponse(httpStatusCodes[404].code, "Booking ID is InValid"))
+                return res.status(httpStatusCodes[400].code)
+                    .json(formResponse(httpStatusCodes[400].code, "Booking ID is InValid"))
             }
             const customerDetails = await Customer.findOne({
                 attributes: ["email", "phoneNumber"],
@@ -390,20 +438,29 @@ exports.dropoff = async (req, res, next) => {
             })
 
             if (!DriverDetails || !customerDetails) {
-                res.status(httpStatusCodes[404].code)
-                    .json(formResponse(httpStatusCodes[404].code, "No records Found"))
+                res.status(httpStatusCodes[400].code)
+                    .json(formResponse(httpStatusCodes[400].code, "Please provide valid customer and driver ID"))
                 return;
             }
 
             const dropoff = await DropCustomer.create(
                 {
                     booking_id: req.body.booking_id,
-                    vehicle_id: req.body.vehicle_id,
+                    // vehicle_id: req.body.vehicle_id,
                     driver: req.body.driverId,
                     contact_num: req.body.contact_num,
                     vehicle_condition: req.body.vehicle_condition
                 }
             )
+
+            const driverAvabilityUpdation=await Driver.update({
+                isAvailable:false
+            },{
+                where:{
+                    id:req.body.driverId
+                   }
+            })
+
 
             const CustomerEmailError = await emailNotify(customerDetails.email, 'subject', 'yo having this ride');
             const CustomerWhatAppError = await whatsappNotify('kyaa bhaiii', customerDetails.phoneNumber);
@@ -422,7 +479,7 @@ exports.dropoff = async (req, res, next) => {
             // else{
             return res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, "Driver informed successfully for dropoff"))
-            return;
+           
             // }
         }
         catch (error) {
@@ -525,8 +582,23 @@ const getBookingById=async(booking_id)=>{
 
         // const additionalPickUpDriverDetails =await db.query(`SELECT * FROM drivers WHERE drivers.id IN(SELECT pickupdriversbookings.driver_id FROM bookings,pickupdriversbookings WHERE bookings._id="${booking_id}");`)
         if(pickup_details && dropoff_details){
+            const pickupDriverID=pickup_details.driver;
+            const dropoffDriverID=pickup_details.driver;
+
+            const pickupDriverDetails=await Driver.findOne({
+                where:{
+                    id:pickupDriverID
+                }
+            })
+
+            const dropoffDriverDetails=await Driver.findOne({
+                where:{
+                    id:dropoffDriverID
+                }
+            })
             result={
                 "bookingDetails":{
+                    _id:bookingDetails._id,
                     customer_id: bookingDetails.customer_id,
                     vehicle_id: bookingDetails.vehicle_id,
                     pickup_date: bookingDetails.pickup_date,
@@ -585,6 +657,24 @@ const getBookingById=async(booking_id)=>{
                     contact_num:dropoff_details.contact_num,
                     vehicle_condition:dropoff_details.vehicle_condition
                 },
+                "pickup_driver":{
+                    id:pickupDriverDetails.id,
+                    full_name:pickupDriverDetails.full_name,
+                    phone_number:pickupDriverDetails.phone_number,
+                    alternate_number:pickupDriverDetails.alternate_number,
+                    email:pickupDriverDetails.email,
+                    license_no:pickupDriverDetails.license_no,
+                    license_img:pickupDriverDetails.license_img,
+                },
+                "dropoff_driver":{
+                    id:dropoffDriverDetails.id,
+                    full_name:dropoffDriverDetails.full_name,
+                    phone_number:dropoffDriverDetails.phone_number,
+                    alternate_number:dropoffDriverDetails.alternate_number,
+                    email:dropoffDriverDetails.email,
+                    license_no:dropoffDriverDetails.license_no,
+                    license_img:dropoffDriverDetails.license_img,
+                }
                 // "additionalDropOffDriverDetails":{
                 //     ...additionalDropOffDriverDetails[0]
                 // },
