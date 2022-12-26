@@ -1,5 +1,5 @@
-const { DataTypes }=require('sequelize')
-const db=require('../config/db.js')
+const { DataTypes } = require('sequelize')
+const db = require('../config/db.js')
 const Customer = require('./customer.model.js')
 const DropCustomer = require('./dropCustomer.model.js')
 const dropoffDriversBooking = require('./dropoffDriversBooking.model.js')
@@ -9,115 +9,115 @@ const shortUrl = require('./shortUrl.model.js')
 
 
 
-const Booking=db.define('booking',{
+const Booking = db.define('booking', {
     _id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
         allowNull: false,
-      },
-      customer_id:{
-        type: DataTypes.UUID,
-        allowNull: false,
-      },
-     vehicle_id:{
+    },
+    customer_id: {
         type: DataTypes.UUID,
         allowNull: false,
     },
-    pickup_date:{
+    vehicle_id: {
+        type: DataTypes.UUID,
+        allowNull: false,
+    },
+    pickup_date: {
         type: DataTypes.DATE,
         allowNull: false,
     },
-    pickup_time:{
+    pickup_time: {
         type: DataTypes.TIME,
         allowNull: false,
-        required:true
+        required: true
     },
-    dropoff_date:{
+    dropoff_date: {
         type: DataTypes.DATE,
         allowNull: false,
     },
-    dropoff_time:{
+    dropoff_time: {
         type: DataTypes.TIME,
         allowNull: false,
-        required:true
+        required: true
     },
-    vehicle_type:{
+    vehicle_type: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    pickup_location:{
+    pickup_location: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    dropoff_location:{
+    dropoff_location: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    duration:{
+    duration: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    booking_status:{
+    booking_status: {
         type: DataTypes.STRING,
         allowNull: false,
         defaultValue: "pending"
     },
-    isDeleted:{
+    isDeleted: {
         type: DataTypes.BOOLEAN,
-        defaultValue:false
+        defaultValue: false
     }
-    
+
 })
 
 
 
-Booking.hasOne(shortUrl,{
-    foreignKey:'bookingid',
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
+Booking.hasOne(shortUrl, {
+    foreignKey: 'bookingid',
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
 });
 
 
-Booking.hasOne(Customer,{
-    foreignKey:'booking_id',
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
+Booking.hasOne(Customer, {
+    foreignKey: 'booking_id',
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
 });
 
-Booking.hasOne(DropCustomer,{
-    foreignKey:'booking_id',
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
+Booking.hasOne(DropCustomer, {
+    foreignKey: 'booking_id',
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
 });
 
-Booking.hasOne(PickCustomer,{
-    foreignKey:'booking_id',
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
+Booking.hasOne(PickCustomer, {
+    foreignKey: 'booking_id',
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
 });
 
-Booking.hasMany(pickupDriversBooking,{
-    foreignKey:'booking_id',
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
+Booking.hasMany(pickupDriversBooking, {
+    foreignKey: 'booking_id',
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
 });
 
-Booking.hasMany(dropoffDriversBooking,{
-    foreignKey:'booking_id',
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
+Booking.hasMany(dropoffDriversBooking, {
+    foreignKey: 'booking_id',
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
 });
 
 
-Customer.belongsTo(Booking,{
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
+Customer.belongsTo(Booking, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
 })
 
 
 Booking.sync({
     // alter:true
 })
-module.exports=Booking
+module.exports = Booking
 
