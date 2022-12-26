@@ -24,6 +24,7 @@ const Vendor = require('../Models/Vendor')
 const Vehicle = require('../Models/Vehicle')
 const { YearlyInstance } = require('twilio/lib/rest/api/v2010/account/usage/record/yearly')
 const { sms } = require('../services/sms')
+const { Console } = require('console')
 
 
 
@@ -412,6 +413,7 @@ exports.dropoff = async (req, res, next) => {
                     isAvailable:true
                 }
             })
+          
             if(!DriverDetails){
                 res.status(httpStatusCodes[400].code)
                 .json(formResponse(httpStatusCodes[400].code,  "Please provide valid Driver ID"))
@@ -483,6 +485,7 @@ exports.dropoff = async (req, res, next) => {
             // }
         }
         catch (error) {
+            console.log(error)
             return res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, error))
         }
     }
@@ -808,4 +811,6 @@ exports.getAllBooking=async(req,res)=>{
         return res.status(httpStatusCodes[500].code)
         .json(formResponse(httpStatusCodes[500].code,error))
     } 
+
+    
 }

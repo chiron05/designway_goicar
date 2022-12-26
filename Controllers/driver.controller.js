@@ -6,6 +6,8 @@ const Driver = require('../Models/Driver.js')
 const { Op, Sequelize } = require('sequelize')
 const cloudinary = require('../Utils/cloudinary');
 const { createDriverSchema, updateDriverSchema, getRideDetailsSchema, deleteDriverSchema } = require('../Joi/driver.validation');
+const pickupDriversBooking = require('../Models/pickupDriversBooking.model');
+const dropoffDriversBooking = require('../Models/dropoffDriversBooking.model');
 
 
 exports.getDrivers = async (req, res) => {
@@ -22,6 +24,90 @@ exports.getDrivers = async (req, res) => {
     })
 }
 
+exports.additonalPickUpDriver=async(req,res)=>{
+    const pickUpdetails=await PickCustomer.findOne({
+       where:{
+        _id:req.body.pickup_id
+       }
+    })
+
+    const driverDetails=await Driver.findOne({
+       where:{
+        id:req.body.driver_id,
+        isDeleted:false,
+        isAvailable:false
+       }
+    })
+
+    if(driverDetails){
+        return  res.status(httpStatusCodes[404].code)
+        .json(formResponse(httpStatusCodes[404].code, "Driver Unavailable"))
+    }
+    if(pickUpdetails){
+        const additonalDriver=await pickupDriversBooking.create({
+            booking_id:pickUpdetails.booking_id,
+            pickup_id:req.body.pickup_id,
+            driver_id:req.body.driver_id
+        })
+        const updateDriver=await Driver.update({
+            isAvailable:false
+         },{
+            where:{
+                id:req.body.driver_id,
+                isDeleted:false
+            }
+         })
+         
+        return  res.status(httpStatusCodes[200].code)
+        .json(formResponse(httpStatusCodes[200].code, "Additional Driver added successfully"))
+    }
+    else{
+       return res.status(httpStatusCodes[404].code)
+        .json(formResponse(httpStatusCodes[404].code, "Invalid PickUp ID"))
+    }
+}
+
+exports.additonalDrpOffDriver=async(req,res)=>{
+    const dropOffdetails=await DropCustomer.findOne({
+        where:{
+         _id:req.body.dropOff_id
+        }
+     })
+ 
+     const driverDetails=await Driver.findOne({
+        where:{
+         id:req.body.driver_id,
+         isDeleted:false,
+         isAvailable:false
+        }
+     })
+ 
+     if(driverDetails){
+         return  res.status(httpStatusCodes[404].code)
+         .json(formResponse(httpStatusCodes[404].code, "Driver Unavailable"))
+     }
+     if(dropOffdetails){
+         const additonalDriver=await dropoffDriversBooking.create({
+             booking_id:dropOffdetails.booking_id,
+             dropoff_id:req.body.dropOff_id,
+             driver_id:req.body.driver_id
+         })
+         const updateDriver=await Driver.update({
+            isAvailable:false
+         },{
+            where:{
+                id:req.body.driver_id,
+                isDeleted:false
+            }
+         })
+         return  res.status(httpStatusCodes[200].code)
+         .json(formResponse(httpStatusCodes[200].code, "Additional Driver added successfully"))
+     }
+     else{
+        return res.status(httpStatusCodes[404].code)
+         .json(formResponse(httpStatusCodes[404].code, "Invalid Drop Off ID"))
+     }
+}
 
 exports.createDriver = async (req, res) => {
 
