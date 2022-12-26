@@ -807,7 +807,5 @@ exports.getAllBooking=async(req,res)=>{
     } catch (error) {
         return res.status(httpStatusCodes[500].code)
         .json(formResponse(httpStatusCodes[500].code,error))
-    }
-  
-
+    } 
 }
