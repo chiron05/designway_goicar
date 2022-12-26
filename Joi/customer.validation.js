@@ -9,6 +9,8 @@ const createCustomerSchema=Joi.object({
         minDomainSegments:2,
         tlds:{allow:["com","in"]}
     }).required(),
+    alternate_number:Joi.string().required(),
+    idNumber:Joi.number().required(),
     phoneNumber:Joi.string().length(12).pattern(/^[0-9]+$/).required(),
     idProofURL:Joi.string().required()
 }
@@ -18,6 +20,8 @@ const updateCustomer=Joi.object({
     _id:Joi.string().min(36).required(),
     firstName:Joi.string(),
     lastName:Joi.string(),
+    alternate_number:Joi.string(),
+    idNumber:Joi.number(),
     email:Joi.string().email({
         minDomainSegments:2,
         tlds:{allow:["com","in"]}

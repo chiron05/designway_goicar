@@ -113,12 +113,18 @@ exports.createCustomer=async(req,res,next)=>{
     if(Object.keys(req.body).length === 0){
         return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
     }
+    if(req.body.phoneNumber==req.body.alternate_number){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Alternate phonenumber must be different`))
+        return;
+    }
     try {
         const result=await cloudinary.uploader.upload(req.file.path);
         const {error,value}=createCustomerSchema.validate({
             firstName:req.body.firstName,
             lastName:req.body.lastName,
             email:req.body.email,
+            alternate_number:req.body.alternate_number,
+            idNumber:req.body.idNumber,
             phoneNumber:req.body.phoneNumber,
             idProofURL:result.url
         });
@@ -146,6 +152,8 @@ exports.createCustomer=async(req,res,next)=>{
             firstName:req.body.firstName,
             lastName:req.body.lastName,
             email:req.body.email,
+            alternate_number:req.body.alternate_number,
+            idNumber:req.body.idNumber,
             phoneNumber:req.body.phoneNumber,
             idProofURL:result.url
         })

@@ -30,6 +30,15 @@ const Customer=db.define('customer',{
         notNull: { args: true, msg: "You must enter Phone Number" },
         isInt: { args: true, msg: "You must enter Phone Number" }
     }},
+    alternate_number:{
+        type: DataTypes.STRING,
+        allowNull:false,
+        unique:true
+    },
+    idNumber:{
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
    idProofURL:{
     type: DataTypes.STRING,
     allowNull: false

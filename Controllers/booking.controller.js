@@ -24,7 +24,6 @@ const Vendor = require('../Models/Vendor')
 const Vehicle = require('../Models/Vehicle')
 const { YearlyInstance } = require('twilio/lib/rest/api/v2010/account/usage/record/yearly')
 const { sms } = require('../services/sms')
-const { Console } = require('console')
 
 
 
