@@ -111,7 +111,6 @@ exports.updateVehicleBooking = async (req, res) => {
 
 
 exports.createVehicleBooking = async (req, res) => {
-
     const vehicleDetails=await Vehicle.findOne({
         where:{
             id:req.body.vehicle_id
@@ -119,7 +118,6 @@ exports.createVehicleBooking = async (req, res) => {
 
         attributes:["id","isBooked"]
     })
-
     if(!vehicleDetails){
         return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Vehicle ID is Invalid"));
     }
@@ -413,7 +411,7 @@ exports.dropoff = async (req, res, next) => {
                     isAvailable:true
                 }
             })
-          
+
             if(!DriverDetails){
                 res.status(httpStatusCodes[400].code)
                 .json(formResponse(httpStatusCodes[400].code,  "Please provide valid Driver ID"))
@@ -526,9 +524,18 @@ exports.bookingCancellation = async (req, res) => {
 }
 
 const getBookingById=async(booking_id)=>{
+  
     let result={
 
     }
+
+    let additional_pickupDriver=[
+
+    ]
+
+    let additional_dropoffDriver=[
+        
+    ]
     try {
         const bookingDetails=await Booking.findOne({
             where:{
@@ -536,6 +543,7 @@ const getBookingById=async(booking_id)=>{
                 isDeleted:false
             }
         })
+       
         const customer_details = await Customer.findOne({
                         attributes: ["firstName", "lastName", "email", "phoneNumber"],
                         isDeleted: false,
@@ -545,6 +553,7 @@ const getBookingById=async(booking_id)=>{
             
                         }
                     })
+
         const vehicle_details=await Vehicle.findOne({
             attributes: ["id", "number", "make", "type","transmission","class","registration_no","colour","image","owner","on_goicar_since","rc_Book","pollution_certificate","insurance","RSA"],
             isDeleted: false,
@@ -552,7 +561,7 @@ const getBookingById=async(booking_id)=>{
                 id: bookingDetails.dataValues.vehicle_id,
             }
         })
-      
+     
 
         const vendorDetails=await Vendor.findOne({
             attributes: ["id", "full_name","address","city","state","pincode","email","phone_number","alternate_number","id_proof","id_no"],
@@ -561,10 +570,9 @@ const getBookingById=async(booking_id)=>{
                 id: vehicle_details.dataValues.owner,
             }
         })
-
        
         const pickup_details = await PickCustomer.findOne({
-                        attributes: ["driver", "contact_num", "vehicle_condition"],
+                        attributes: ["_id","driver", "contact_num", "vehicle_condition"],
                         where: {
                             booking_id: booking_id,
                             isDeleted: false
@@ -572,7 +580,7 @@ const getBookingById=async(booking_id)=>{
             
                     })
         const dropoff_details = await DropCustomer.findOne({
-                        attributes: ["driver", "contact_num", "vehicle_condition"],
+                        attributes: ["_id","driver", "contact_num", "vehicle_condition"],
                         where: {
                             booking_id: booking_id,
                             isDeleted: false
@@ -587,6 +595,61 @@ const getBookingById=async(booking_id)=>{
         if(pickup_details && dropoff_details){
             const pickupDriverID=pickup_details.driver;
             const dropoffDriverID=pickup_details.driver;
+
+            const pickup_id=pickup_details._id
+            const dropoff_id=dropoff_details._id
+
+            console.log("pick"+pickup_id)
+            const pickup_additional_driver=await pickupDriversBooking.findAll({
+                where:{
+                    pickup_id:pickup_id
+                },
+                attributes:["driver_id"]
+            })
+          
+
+            if(pickup_additional_driver){
+                for(let i=0;i<pickup_additional_driver.length;i++){
+                    const DriverDetails=await Driver.findOne({
+                        where:{
+                            id:pickup_additional_driver[i].dataValues.driver_id
+                        },
+                        attributes:["id","full_name","phone_number","alternate_number","email","license_no","license_img","isAvailable"]
+                    })
+                    additional_pickupDriver=[
+                        ...additional_pickupDriver,
+                        DriverDetails
+                    ]
+
+                }
+            }
+
+            const dropoff_additional_driver=await dropoffDriversBooking.findAll({
+                where:{
+                    dropoff_id:dropoff_id
+                },
+                attributes:["driver_id"]
+            })
+
+          
+            if(dropoff_additional_driver){
+                for(let i=0;i<dropoff_additional_driver.length;i++){
+                    const DriverDetails=await Driver.findOne({
+                        where:{
+                            id:dropoff_additional_driver[i].dataValues.driver_id
+                        },
+                        attributes:["id","full_name","phone_number","alternate_number","email","license_no","license_img","isAvailable"]
+                    })
+                    additional_dropoffDriver=[
+                        ...additional_dropoffDriver,
+                        DriverDetails
+                    ]
+
+                }
+            }
+
+
+
 
             const pickupDriverDetails=await Driver.findOne({
                 where:{
@@ -677,13 +740,9 @@ const getBookingById=async(booking_id)=>{
                     email:dropoffDriverDetails.email,
                     license_no:dropoffDriverDetails.license_no,
                     license_img:dropoffDriverDetails.license_img,
-                }
-                // "additionalDropOffDriverDetails":{
-                //     ...additionalDropOffDriverDetails[0]
-                // },
-                // "additionalPickUpDriverDetails":{
-                //     ...additionalPickUpDriverDetails[0]
-                // }
+                },
+                "additionalDropOffDriverDetails":additional_dropoffDriver,
+                "additionalPickUpDriverDetails":additional_pickupDriver
             }
             return result;
         }
@@ -796,8 +855,9 @@ exports.getAllBooking=async(req,res)=>{
         })
     let i=0;
     let max_length=allBookingID.length
-
+   
     for(let j=0;j<max_length;j++){
+        console.log(allBookingID[j].dataValues._id)
      const booking=await getBookingById(allBookingID[j].dataValues._id)
      result=[
       booking,
