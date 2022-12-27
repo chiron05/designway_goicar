@@ -1,11 +1,34 @@
 const Vehicle = require('../Models/Vehicle')
 const Vendor = require('../Models/Vendor')
+const vehicleImages = require('../Models/vehicleImages.model');
 const httpStatusCodes = require('../Constants/http-status-codes');
 const { formResponse } = require('../Utils/helper');
 
-const { updateVehicleSchema, createVehicleSchema, deleteVehicle } = require('../Joi/vehicle.validation')
+const { updateVehicleSchema, createVehicleSchema, deleteVehicle } = require('../Joi/vehicle.validation');
+const { model } = require('mongoose');
 
-
+exports.getVehicleById = async (req, res) => {
+    const vehicle_details = await Vehicle.findOne({
+        include: [{ model: Vendor }],
+        where: {
+            id: req.params.id,
+            isDeleted: false
+        }
+    })
+        .then(result => {
+            if (result != null) {
+                res.status(httpStatusCodes[200].code)
+                    .json(formResponse(httpStatusCodes[200].code, result))
+            }
+            else {
+                res.status(httpStatusCodes[404].code)
+                    .json(formResponse(httpStatusCodes[404].code, err))
+            }
+        }).catch(err => {
+            res.status(httpStatusCodes[500].code)
+                .json(formResponse(httpStatusCodes[500].code, err))
+        })
+}
 exports.createVehicle = async (req, res) => {
     var data = req.body
     if (Object.keys(data).length === 0) {
@@ -91,7 +114,9 @@ exports.createVehicle = async (req, res) => {
 }
 
 exports.getAllVehicle = async (req, res) => {
-    await Vehicle.findAll().then(result => {
+    await Vehicle.findAll({
+        include: [{ model: Vendor }]
+    }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
     }).catch(err => {
