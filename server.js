@@ -9,12 +9,14 @@ const port = process.env.PORT || 3000;
 const app = express();
 const helmet=require('helmet')
 const axios=require('axios')
+const cors = require('cors');
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.set('view engine','ejs')
-app.use(helmet())
+// app.use(helmet())
+app.use(cors())
 
 db.authenticate().then(()=>{
     console.log("DB Connected")
