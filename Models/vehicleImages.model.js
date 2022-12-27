@@ -25,6 +25,8 @@ VehicleImages.hasMany(Vehicle, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE"
 })
+
+
 VehicleImages.sync({
     // alter:true
 })
