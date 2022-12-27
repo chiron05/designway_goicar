@@ -97,17 +97,17 @@ Booking.hasOne(PickCustomer,{
     onUpdate:"CASCADE"
 });
 
-Booking.hasMany(pickupDriversBooking,{
-    foreignKey:'booking_id',
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
-});
+// Booking.hasMany(pickupDriversBooking,{
+//     foreignKey:'booking_id',
+//     onDelete:"CASCADE",
+//     onUpdate:"CASCADE"
+// });
 
-Booking.hasMany(dropoffDriversBooking,{
-    foreignKey:'booking_id',
-    onDelete:"CASCADE",
-    onUpdate:"CASCADE"
-});
+// Booking.hasMany(dropoffDriversBooking,{
+//     foreignKey:'booking_id',
+//     onDelete:"CASCADE",
+//     onUpdate:"CASCADE"
+// });
 
 
 Customer.belongsTo(Booking,{
