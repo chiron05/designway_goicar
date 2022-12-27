@@ -20,11 +20,11 @@ const VehicleImages = db.define('vehicleImages', {
     }
 })
 
-VehicleImages.hasMany(Vehicle, {
-    foreignKey: 'vehicle_id',
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE"
-})
+// VehicleImages.hasMany(Vehicle, {
+//     foreignKey: 'vehicle_id',
+//     onDelete: "CASCADE",
+//     onUpdate: "CASCADE"
+// })
 VehicleImages.sync({
     // alter:true
 })
