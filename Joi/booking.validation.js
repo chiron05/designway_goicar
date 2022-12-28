@@ -35,13 +35,17 @@ const updatePickDropSchema=Joi.object({
    booking_id:Joi.string().min(36),
    driver:Joi.string().min(36),
    searchBookingId:Joi.string().min(36),
+   fuel_km:Joi.number(),
+   fuel_tank:Joi.number()
 });
 
 const pickUpDropOffSchema=Joi.object({
    booking_id:Joi.string().min(36),
    driverId:Joi.string().min(36),
    contact_num:Joi.string().length(12).pattern(/^[0-9]+$/),
-   vehicle_condition:Joi.string()
+   vehicle_condition:Joi.string(),
+   fuel_km:Joi.number().required(),
+   fuel_tank:Joi.number().required()
 })
 
 const bookingCancellationSchema=Joi.object({

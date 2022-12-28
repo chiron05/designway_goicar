@@ -25,6 +25,14 @@ const DropCustomer=db.define('dropcustomer',{
             isInt: { args: true, msg: "You must enter Phone Number" }
         }
     },
+    fuel_km:{
+        type: DataTypes.INTEGER,
+        allowNull:false
+    },
+    fuel_tank:{
+        type: DataTypes.INTEGER,
+        allowNull:false
+    },
     vehicle_condition: {
         type: DataTypes.STRING,
         allowNull: false

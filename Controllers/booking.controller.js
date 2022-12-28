@@ -184,8 +184,10 @@ exports.createVehicleBooking = async (req, res) => {
                
                 emailNotify(customer.email,"subject",
             `Hello ${customer.firstName}
+
              You have received a link from Goicar. 
-             Here is your booking link <thelink> please click on the link to update your booking details.
+             Here is your booking link http://localhost:3000/track/${req.body.customer_id}/${data._id} please click on the link to update your booking details.
+
              Click here: http://localhost:3000/track/${req.body.customer_id}/${data._id}`)
 
                 res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
@@ -273,20 +275,24 @@ exports.pickup = async (req, res) => {
                     isAvailable:true
                 }
             })
-
+            console.log(!DriverDetails)
             if(!DriverDetails){
-                res.status(httpStatusCodes[400].code)
+                console.log("heyy");
+              return  res.status(httpStatusCodes[400].code)
                 .json(formResponse(httpStatusCodes[400].code,  "Please provide valid Driver ID"))
-            return;
+      
             }
 
             const booking_details = await Booking.findOne({
                 where: {
                     _id: req.body.booking_id,
-                    booking_status: "pending"
+                    booking_status: "pending",
+                    isDeleted:false
                 },
                 attributes: ["customer_id"]
             })
+
+           
 
             if (!booking_details) {
                 return res.status(httpStatusCodes[400].code)
@@ -299,7 +305,7 @@ exports.pickup = async (req, res) => {
                     isDeleted: false
                 }
             })
-
+            console.log(booking_details.dataValues.customer_id)
             if (!DriverDetails || !customerDetails) {
 
                 res.status(httpStatusCodes[400].code)
@@ -313,7 +319,9 @@ exports.pickup = async (req, res) => {
                     // vehicle_id: req.body.vehicle_id,
                     driver: req.body.driverId,
                     contact_num: req.body.contact_num,
-                    vehicle_condition: req.body.vehicle_condition
+                    vehicle_condition: req.body.vehicle_condition,
+                    fuel_km:req.body.fuel_km,
+                    fuel_tank:req.body.fuel_tank
                 }
             )
             
@@ -361,7 +369,7 @@ exports.updatedropoff = async (req, res) => {
     if (Object.keys(req.body).length === 0) {
         return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Body is empty"))
     }
-    const { error, value } = pickUpDropOffSchema.validate(req.body);
+    const { error, value } = updatePickDropSchema.validate(req.body);
 
     if (error) {
 
@@ -458,7 +466,9 @@ exports.dropoff = async (req, res, next) => {
                     // vehicle_id: req.body.vehicle_id,
                     driver: req.body.driverId,
                     contact_num: req.body.contact_num,
-                    vehicle_condition: req.body.vehicle_condition
+                    vehicle_condition: req.body.vehicle_condition,
+                    fuel_km:req.body.fuel_km,
+                    fuel_tank:req.body.fuel_tank
                 }
             )
 

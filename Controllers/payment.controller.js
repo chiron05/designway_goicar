@@ -7,7 +7,7 @@ const { formResponse } = require("../Utils/helper")
 exports.genrateInvoice=async(req,res)=>{
 
    
-    
+
     let total=req.body.total_rent*5000+req.body.pickup_fee+req.body.dropoff_fee+req.body.fuel+req.body.insurance+req.body.zero_liability+req.body.tax+req.body.gst+req.body.deposit
 
     const bookingDetails=await Booking.findOne({
