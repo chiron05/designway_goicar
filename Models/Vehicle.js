@@ -11,7 +11,7 @@ const Vehicle = db.define('vehicle', {
     },
 
     number: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull: false
     },
     make: {
