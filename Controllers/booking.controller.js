@@ -23,7 +23,7 @@ const db=require('../config/db')
 const Vendor = require('../Models/Vendor')
 const Vehicle = require('../Models/Vehicle')
 const { YearlyInstance } = require('twilio/lib/rest/api/v2010/account/usage/record/yearly')
-const { sms } = require('../services/sms')
+const { sms, sms_booking } = require('../services/sms')
 
 
 
@@ -120,10 +120,11 @@ exports.createVehicleBooking = async (req, res) => {
     if(!vehicleDetails){
         return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Vehicle ID is Invalid"));
     }
-    if(vehicleDetails.isBooked){
+    console.log(vehicleDetails.isBooked)
+    if(vehicleDetails.isBooked==1){
        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Vehicle not available"))
     }
-
+  
     const { error, value } = createBookingSchema.validate(
         {
             customer_id: req.body.customer_id,
@@ -146,7 +147,7 @@ exports.createVehicleBooking = async (req, res) => {
                 where: {
                     _id: req.body.customer_id
                 },
-                attributes: ["_id","email"]
+                attributes: ["_id","email","firstName","phoneNumber"]
             })
 
             if (!customer) {
@@ -179,9 +180,11 @@ exports.createVehicleBooking = async (req, res) => {
                 res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, data.error))
             }
             else {
-                sms( req.body.customer_id,data._id);
-                // await emailNotify(customerDetails.email, 'subject', 'having this ride');
-                emailNotify(customer.email,"subject",`Booking Done Successfull. Click here: http://localhost:3000/track/${req.body.customer_id}/data._id`)
+                sms_booking( req.body.customer_id,data._id,customer.phoneNumber,customer.firstName);
+               
+                emailNotify(customer.email,"subject",`Hello ${customer.firstName}
+                You have received a link from Goicar. Here is your booking link <thelink> please click on the link to update your booking details. Click here: http://localhost:3000/track/${req.body.customer_id}/${data._id}`)
+
                 res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
                     "Message":"Booking done successfully"
                 }))
