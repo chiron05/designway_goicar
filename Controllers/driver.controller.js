@@ -208,9 +208,8 @@ exports.createDriver = async (req, res) => {
 
     }
     catch (err) {
-        console.log(err)
-        res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, err))
+        res.status(httpStatusCodes[500].code)
+            .json(formResponse(httpStatusCodes[500].code, err))
     }
     }
 

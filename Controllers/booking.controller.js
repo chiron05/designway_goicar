@@ -852,7 +852,7 @@ exports.getAllBooking=async(req,res)=>{
     try {
         const allBookingID=await Booking.findAll({
             attributes:["_id"],
-            limit:5,
+            limit:10,
             offset:skip
         })
     let i=0;
