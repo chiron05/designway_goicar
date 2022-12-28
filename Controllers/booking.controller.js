@@ -182,15 +182,19 @@ exports.createVehicleBooking = async (req, res) => {
             else {
                 sms_booking( req.body.customer_id,data._id,customer.phoneNumber,customer.firstName);
                
-                emailNotify(customer.email,"subject",`Hello ${customer.firstName}
-                You have received a link from Goicar. Here is your booking link <thelink> please click on the link to update your booking details. Click here: http://localhost:3000/track/${req.body.customer_id}/${data._id}`)
+                emailNotify(customer.email,"subject",
+            `Hello ${customer.firstName}
+             You have received a link from Goicar. 
+             Here is your booking link <thelink> please click on the link to update your booking details.
+             Click here: http://localhost:3000/track/${req.body.customer_id}/${data._id}`)
 
                 res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
-                    "Message":"Booking done successfully"
+                    "message":"Booking done successfully",
+                    data
                 }))
             }
         } catch (error) {
-            console.log(error)
+          
             res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, error))
         }
     }
@@ -337,7 +341,10 @@ exports.pickup = async (req, res) => {
             // }
             // else{
             res.status(httpStatusCodes[200].code)
-                .json(formResponse(httpStatusCodes[200].code, "Driver informed successfully for pickup"))
+                .json(formResponse(httpStatusCodes[200].code, {
+                    "message":"Driver informed successfully for pickup",
+                    pickUp
+                }))
             return;
             // }
         }
@@ -480,12 +487,15 @@ exports.dropoff = async (req, res, next) => {
             // }
             // else{
             return res.status(httpStatusCodes[200].code)
-                .json(formResponse(httpStatusCodes[200].code, "Driver informed successfully for dropoff"))
+                .json(formResponse(httpStatusCodes[200].code, {
+                    "message":"Driver informed successfully for dropoff",
+                    dropoff
+                }))
            
             // }
         }
         catch (error) {
-            console.log(error)
+            
             return res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, error))
         }
     }
@@ -711,7 +721,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
 }
 
 exports.getBooking = async (req, res)=>{
-    const bookingDetails=await Booking.findOne({
+    const bookingDetail=await Booking.findOne({
         where:{
             _id: req.params.id,
             isDeleted:false
@@ -720,13 +730,13 @@ exports.getBooking = async (req, res)=>{
     })
 
     
-    let booking=bookingDetails.dataValues
- 
+    let bookingDetails=bookingDetail.dataValues
+    
     if(bookingDetails){
-        let result= await getBookingById(bookingDetails.dataValues._id,bookingDetails.dataValues.customer_id,bookingDetails.dataValues.vehicle_id);
+        let result= await getBookingById(bookingDetails._id,bookingDetails.customer_id,bookingDetails.vehicle_id);
         if(result){
            result={
-            booking,
+            bookingDetails,
             ...result
            }
             return res.status(httpStatusCodes[200].code)
@@ -759,11 +769,11 @@ exports.getAllBooking=async(req,res)=>{
 
     for(let j=0;j<max_length;j++){
       
-     let BookingDetails= allBookingID[j]
+     let bookingDetails= allBookingID[j]
      let bookingAdditonalDetails=await getBookingById(allBookingID[j].dataValues._id,allBookingID[j].dataValues.customer_id,allBookingID[j].dataValues.vehicle_id)
 
      bookingAdditonalDetails={
-        BookingDetails,
+        bookingDetails,
         ...bookingAdditonalDetails
        
      }

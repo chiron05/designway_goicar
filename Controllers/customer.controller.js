@@ -124,6 +124,7 @@ exports.createCustomer=async(req,res,next)=>{
             lastName:req.body.lastName,
             email:req.body.email,
             alternate_number:req.body.alternate_number,
+            validUntil:req.body.validUntil,
             idNumber:req.body.idNumber,
             phoneNumber:req.body.phoneNumber,
             idProofURL:result.url
@@ -153,6 +154,7 @@ exports.createCustomer=async(req,res,next)=>{
             lastName:req.body.lastName,
             email:req.body.email,
             alternate_number:req.body.alternate_number,
+            validUntil:req.body.validUntil,
             idNumber:req.body.idNumber,
             phoneNumber:req.body.phoneNumber,
             idProofURL:result.url
@@ -166,7 +168,10 @@ exports.createCustomer=async(req,res,next)=>{
         }
         else{
             res.status(httpStatusCodes[200].code)
-            .json(formResponse(httpStatusCodes[200].code, data))
+            .json(formResponse(httpStatusCodes[200].code, {
+                "message":"Customer created successfully",
+                data
+            }))
         }
        
        

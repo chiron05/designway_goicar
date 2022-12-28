@@ -5,7 +5,7 @@ const DropCustomer = require('../Models/dropCustomer.model')
 const Driver = require('../Models/Driver.js')
 const { Op, Sequelize } = require('sequelize')
 const cloudinary = require('../Utils/cloudinary');
-const { createDriverSchema, updateDriverSchema, getRideDetailsSchema, deleteDriverSchema } = require('../Joi/driver.validation');
+const { createDriverSchema, updateDriverSchema, getRideDetailsSchema, deleteDriverSchema, getDriverById } = require('../Joi/driver.validation');
 const pickupDriversBooking = require('../Models/pickupDriversBooking.model');
 const dropoffDriversBooking = require('../Models/dropoffDriversBooking.model');
 
@@ -203,7 +203,10 @@ exports.createDriver = async (req, res) => {
         }
         else {
             res.status(httpStatusCodes[200].code)
-                .json(formResponse(httpStatusCodes[200].code, driver))
+                .json(formResponse(httpStatusCodes[200].code, {
+                    "message":"driver created successfully",
+                    driver
+                }))
         }
 
     }
@@ -285,6 +288,29 @@ exports.deleteDriver = async (req, res) => {
 
 }
 
+exports.getDriverById=async(req,res)=>{
+    
+    const {error,value}=getDriverById.validate({
+        id:req.params.id,
+    });
+    if(error){
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
+        return 
+    }  
+
+    const result=await Driver.findOne({
+        where:{
+            id:req.params.id
+        }
+    })
+
+    if(result){
+        return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,result))
+    }
+    else{
+        return  res.status(httpStatusCodes[404].code).json(formResponse(httpStatusCodes[404].code,"Driver ID is Invalid"))
+    }
+}
 
 
 exports.getRideDetails=async(req,res)=>{
@@ -298,6 +324,7 @@ exports.getRideDetails=async(req,res)=>{
     }  
 
     const pickup=req.body.pickup
+    console.log(pickup)
     if(pickup == 'true')
     {
         let booking=await PickCustomer.findAll({
@@ -306,10 +333,10 @@ exports.getRideDetails=async(req,res)=>{
             }
         })
        if(booking.length==0){
-        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"No booking available"))
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"No booking available"))
        }
        else{
-        res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
+       return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
             "pickup":booking
         }))
        }
@@ -322,10 +349,10 @@ exports.getRideDetails=async(req,res)=>{
             }
         })
         if(booking.length==0){
-            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"No booking available"))
+          return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"No booking available"))
            }
            else{
-            res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
+          return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
                 "dropoff":booking
             }))
         

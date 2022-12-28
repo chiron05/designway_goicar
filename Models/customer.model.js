@@ -39,11 +39,15 @@ const Customer=db.define('customer',{
         type: DataTypes.INTEGER,
         allowNull: false
     },
-   idProofURL:{
-    type: DataTypes.STRING,
-    allowNull: false
+    validUntil:{
+        type:DataTypes.DATE,
+        allowNull:false
+    },
+    idProofURL:{
+       type: DataTypes.STRING,
+       allowNull:false
      },
-     isDeleted:{
+    isDeleted:{
         type: DataTypes.BOOLEAN,
         defaultValue:false
     }

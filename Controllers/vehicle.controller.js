@@ -102,7 +102,10 @@ exports.createVehicle = async (req, res) => {
         }
         else {
             res.status(httpStatusCodes[200].code)
-                .json(formResponse(httpStatusCodes[200].code, vehicle))
+                .json(formResponse(httpStatusCodes[200].code, {
+                    "message":"Vehicle created successfully",
+                    vehicle
+                }))
         }
 
     }

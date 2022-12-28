@@ -68,7 +68,10 @@ exports.createVendor = async (req, res) => {
        }
 
         const vendor = await Vendor.create(req.body)
-        return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, vendor))
+        return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
+            "message":"Vendor created successfully",
+            vendor
+        }))
     }
     catch (error) {
         console.log(error)
