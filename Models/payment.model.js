@@ -9,7 +9,8 @@ const Payment=db.define('Payment',{
         allowNull: false
     },
     booking_id: {
-        type: DataTypes.UUID
+        type: DataTypes.UUID,
+        unique:true
     },
    total_rent:{
     type:DataTypes.INTEGER,
