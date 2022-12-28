@@ -525,7 +525,7 @@ exports.bookingCancellation = async (req, res) => {
 
 }
 
-const getBookingById=async(booking_id)=>{
+const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
   
     let result={
 
@@ -539,69 +539,70 @@ const getBookingById=async(booking_id)=>{
         
     ]
     try {
-        const bookingDetails=await Booking.findOne({
-            where:{
-                _id: booking_id,
-                isDeleted:false
-            }
-        })
+        // const bookingDetails=await Booking.findOne({
+        //     where:{
+        //         _id: booking_id,
+        //         isDeleted:false
+        //     },
+        //     attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","vehicle_type","pickup_location","dropoff_location","duration"]
+        // })
        
-        const customer_details = await Customer.findOne({
-                        attributes: ["firstName", "lastName", "email", "phoneNumber"],
+        const customer_details =  Customer.findOne({
+                        attributes: ["firstName","phoneNumber"],
                         isDeleted: false,
                         where: {
-                            _id: bookingDetails.dataValues.customer_id,
+                            _id: customer_id,
             
             
                         }
                     })
-
-        const vehicle_details=await Vehicle.findOne({
-            attributes: ["id", "number", "make", "type","transmission","class","registration_no","colour","image","owner","on_goicar_since","rc_Book","pollution_certificate","insurance","RSA"],
+        const vehicle_details= Vehicle.findOne({
+            attributes: ["id","type","owner"],
             isDeleted: false,
             where: {
-                id: bookingDetails.dataValues.vehicle_id,
+                id: vehicle_id,
             }
         })
+
+        const res=await Promise.all([customer_details,vehicle_details])
      
-
-        const vendorDetails=await Vendor.findOne({
-            attributes: ["id", "full_name","address","city","state","pincode","email","phone_number","alternate_number","id_proof","id_no"],
-            isDeleted: false,
-            where: {
-                id: vehicle_details.dataValues.owner,
-            }
-        })
+        // const vendorDetails=await Vendor.findOne({
+        //     attributes: ["id", "full_name","address","city","state","pincode","email","phone_number","alternate_number","id_proof","id_no"],
+        //     isDeleted: false,
+        //     where: {
+        //         id: res[1].dataValues.owner,
+        //     }
+        // })
        
-        const pickup_details = await PickCustomer.findOne({
-                        attributes: ["_id","driver", "contact_num", "vehicle_condition"],
+        const pickup_details = PickCustomer.findOne({
+                        attributes: ["_id","driver"],
                         where: {
                             booking_id: booking_id,
                             isDeleted: false
                         },
             
                     })
-        const dropoff_details = await DropCustomer.findOne({
-                        attributes: ["_id","driver", "contact_num", "vehicle_condition"],
+        const dropoff_details = DropCustomer.findOne({
+                        attributes: ["_id","driver"],
                         where: {
                             booking_id: booking_id,
                             isDeleted: false
                         }
                     })
 
-      
+      const pick_drop_details=await Promise.all([pickup_details,dropoff_details])
         // const additionalDropOffDriverDetails =await db.query(`SELECT * FROM drivers WHERE drivers.id IN(SELECT dropoffdriversbookings.driver_id FROM bookings,dropoffdriversbookings WHERE bookings._id="${booking_id}");`)
        
 
         // const additionalPickUpDriverDetails =await db.query(`SELECT * FROM drivers WHERE drivers.id IN(SELECT pickupdriversbookings.driver_id FROM bookings,pickupdriversbookings WHERE bookings._id="${booking_id}");`)
-        if(pickup_details && dropoff_details){
-            const pickupDriverID=pickup_details.driver;
-            const dropoffDriverID=pickup_details.driver;
+        if(pick_drop_details[0] && pick_drop_details[1]){
+            const pickupDriverID=pick_drop_details[0].dataValues.driver;
+            const dropoffDriverID=pick_drop_details[1].dataValues.driver;
 
-            const pickup_id=pickup_details._id
-            const dropoff_id=dropoff_details._id
+            const pickup_id=pick_drop_details[0].dataValues._id
+            const dropoff_id=pick_drop_details[1].dataValues._id
 
-            console.log("pick"+pickup_id)
+        
             const pickup_additional_driver=await pickupDriversBooking.findAll({
                 where:{
                     pickup_id:pickup_id
@@ -616,7 +617,7 @@ const getBookingById=async(booking_id)=>{
                         where:{
                             id:pickup_additional_driver[i].dataValues.driver_id
                         },
-                        attributes:["id","full_name","phone_number","alternate_number","email","license_no","license_img","isAvailable"]
+                        attributes:["id","full_name"]
                     })
                     additional_pickupDriver=[
                         ...additional_pickupDriver,
@@ -640,7 +641,7 @@ const getBookingById=async(booking_id)=>{
                         where:{
                             id:dropoff_additional_driver[i].dataValues.driver_id
                         },
-                        attributes:["id","full_name","phone_number","alternate_number","email","license_no","license_img","isAvailable"]
+                        attributes:["id","full_name"]
                     })
                     additional_dropoffDriver=[
                         ...additional_dropoffDriver,
@@ -653,96 +654,30 @@ const getBookingById=async(booking_id)=>{
 
 
 
-            const pickupDriverDetails=await Driver.findOne({
+            const pickupDriverDetails= Driver.findOne({
                 where:{
                     id:pickupDriverID
-                }
+                },
+                attributes:["id","full_name"]
             })
 
-            const dropoffDriverDetails=await Driver.findOne({
+            const dropoffDriverDetails= Driver.findOne({
                 where:{
-                    id:dropoffDriverID
-                }
+                    id:dropoffDriverID,
+                },
+                attributes:["id","full_name"]
             })
+
+            const pick_drop_driver=await Promise.all([pickupDriverDetails,dropoffDriverDetails])
             result={
-                "bookingDetails":{
-                    _id:bookingDetails._id,
-                    customer_id: bookingDetails.customer_id,
-                    vehicle_id: bookingDetails.vehicle_id,
-                    pickup_date: bookingDetails.pickup_date,
-                    pickup_time: bookingDetails.pickup_time,
-                    dropoff_date: bookingDetails.dropoff_date,
-                    dropoff_time: bookingDetails.dropoff_time,
-                    vehicle_type: bookingDetails.vehicle_type,
-                    pickup_location: bookingDetails.pickup_location,
-                    dropoff_location: bookingDetails.dropoff_location,
-                    duration: bookingDetails.duration,
-                    booking_status: bookingDetails.booking_status
-                },
-                "customer_details":{
-                    firstName:customer_details.firstName,
-                    lastName:customer_details.lastName,
-                    email:customer_details.email,
-                    phoneNumber:customer_details.phoneNumber
-                },
-                "vehicle_details":{
-                    id:vehicle_details.id,
-                    number:vehicle_details.number,
-                    make:vehicle_details.make,
-                    type:vehicle_details.type,
-                    transmission:vehicle_details.transmission,
-                    registration_no:vehicle_details.registration_no,
-                    colour:vehicle_details.colour,
-                    image:vehicle_details.image,
-                    owner:vehicle_details.owner,
-                    on_goicar_since:vehicle_details.on_goicar_since,
-                    rc_Book:vehicle_details.rc_Book,
-                    pollution_certificate:vehicle_details.pollution_certificate,
-                    insurance:vehicle_details.insurance,
-                    RSA:vehicle_details.RSA
-                },
-                "vendorDetails":{
-                    id:vendorDetails.id,
-                    full_name:vendorDetails.full_name,
-                    address:vendorDetails.address,
-                    city:vendorDetails.city,
-                    state:vendorDetails.state,
-                    pincode:vendorDetails.pincode,
-                    email:vehicle_details.email,
-                    phone_number:vendorDetails.phone_number,
-                    alternate_number:vendorDetails.alternate_number,
-                    id_proof:vendorDetails.id_proof,
-                    id_no:vendorDetails.id_no
-                }
-                ,
-                "pickup_details":{
-                        driver:pickup_details.driver,
-                        contact_num:pickup_details.contact_num,
-                        vehicle_condition:pickup_details.vehicle_condition
-                },
-                "dropoff_details":{
-                    driver:dropoff_details.driver,
-                    contact_num:dropoff_details.contact_num,
-                    vehicle_condition:dropoff_details.vehicle_condition
-                },
-                "pickup_driver":{
-                    id:pickupDriverDetails.id,
-                    full_name:pickupDriverDetails.full_name,
-                    phone_number:pickupDriverDetails.phone_number,
-                    alternate_number:pickupDriverDetails.alternate_number,
-                    email:pickupDriverDetails.email,
-                    license_no:pickupDriverDetails.license_no,
-                    license_img:pickupDriverDetails.license_img,
-                },
-                "dropoff_driver":{
-                    id:dropoffDriverDetails.id,
-                    full_name:dropoffDriverDetails.full_name,
-                    phone_number:dropoffDriverDetails.phone_number,
-                    alternate_number:dropoffDriverDetails.alternate_number,
-                    email:dropoffDriverDetails.email,
-                    license_no:dropoffDriverDetails.license_no,
-                    license_img:dropoffDriverDetails.license_img,
-                },
+                // "bookingDetails":bookingDetails,
+                "customer_details":res[0],
+                "vehicle_details":res[1],
+                // "vendorDetails":vendorDetails,
+                "pickup_details":pick_drop_details[0],
+                "dropoff_details":pick_drop_details[1],
+                "pickup_driver":pick_drop_driver[0],
+                "dropoff_driver":pick_drop_driver[1],
                 "additionalDropOffDriverDetails":additional_dropoffDriver,
                 "additionalPickUpDriverDetails":additional_pickupDriver
             }
@@ -750,56 +685,11 @@ const getBookingById=async(booking_id)=>{
         }
         else{
             result={
-                "bookingDetails":{
-                    _id:bookingDetails._id,
-                    customer_id: bookingDetails.customer_id,
-                    vehicle_id: bookingDetails.vehicle_id,
-                    pickup_date: bookingDetails.pickup_date,
-                    pickup_time: bookingDetails.pickup_time,
-                    dropoff_date: bookingDetails.dropoff_date,
-                    dropoff_time: bookingDetails.dropoff_time,
-                    vehicle_type: bookingDetails.vehicle_type,
-                    pickup_location: bookingDetails.pickup_location,
-                    dropoff_location: bookingDetails.dropoff_location,
-                    duration: bookingDetails.duration,
-                    booking_status: bookingDetails.booking_status
-                },
-                "customer_details":{
-                    firstName:customer_details.firstName,
-                    lastName:customer_details.lastName,
-                    email:customer_details.email,
-                    phoneNumber:customer_details.phoneNumber
-                },
-                "vehicle_details":{
-                    id:vehicle_details.id,
-                    number:vehicle_details.number,
-                    make:vehicle_details.make,
-                    type:vehicle_details.type,
-                    transmission:vehicle_details.transmission,
-                    registration_no:vehicle_details.registration_no,
-                    colour:vehicle_details.colour,
-                    image:vehicle_details.image,
-                    owner:vehicle_details.owner,
-                    on_goicar_since:vehicle_details.on_goicar_since,
-                    rc_Book:vehicle_details.rc_Book,
-                    pollution_certificate:vehicle_details.pollution_certificate,
-                    insurance:vehicle_details.insurance,
-                    RSA:vehicle_details.RSA
-                },
-                "vendorDetails":{
-                    id:vendorDetails.id,
-                    full_name:vendorDetails.full_name,
-                    address:vendorDetails.address,
-                    city:vendorDetails.city,
-                    state:vendorDetails.state,
-                    pincode:vendorDetails.pincode,
-                    email:vehicle_details.email,
-                    phone_number:vendorDetails.phone_number,
-                    alternate_number:vendorDetails.alternate_number,
-                    id_proof:vendorDetails.id_proof,
-                    id_no:vendorDetails.id_no
-                }
-                ,
+                // "bookingDetails":bookingDetails,
+                "customer_details":res[0],
+                "vehicle_details":res[1],
+                // "vendorDetails":vendorDetails,
+                
                 "pickup_details":{
                 },
                 "dropoff_details":{
@@ -825,12 +715,20 @@ exports.getBooking = async (req, res)=>{
         where:{
             _id: req.params.id,
             isDeleted:false
-        }
+        },
+        attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","vehicle_type","pickup_location","dropoff_location","duration"],
     })
+
+    
+    let booking=bookingDetails.dataValues
+ 
     if(bookingDetails){
-        const result= await getBookingById(req.params.id);
+        let result= await getBookingById(bookingDetails.dataValues._id,bookingDetails.dataValues.customer_id,bookingDetails.dataValues.vehicle_id);
         if(result){
-           
+           result={
+            booking,
+            ...result
+           }
             return res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
         }
@@ -850,26 +748,36 @@ exports.getAllBooking=async(req,res)=>{
     let skip=5*(req.query.page);
     let result=[]
     try {
-        const allBookingID=await Booking.findAll({
-            attributes:["_id"],
+        const allBookingID=await Booking.findAll({ 
+            attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","vehicle_type","pickup_location","dropoff_location","duration"],
             limit:10,
             offset:skip
         })
     let i=0;
     let max_length=allBookingID.length
-   
+    
+
     for(let j=0;j<max_length;j++){
-        console.log(allBookingID[j].dataValues._id)
-     const booking=await getBookingById(allBookingID[j].dataValues._id)
-     result=[
-      booking,
-        ...result
-     ]
+      
+     let BookingDetails= allBookingID[j]
+     let bookingAdditonalDetails=await getBookingById(allBookingID[j].dataValues._id,allBookingID[j].dataValues.customer_id,allBookingID[j].dataValues.vehicle_id)
+
+     bookingAdditonalDetails={
+        BookingDetails,
+        ...bookingAdditonalDetails
+       
+     }
+    result=[
+        ...result,
+        bookingAdditonalDetails
+    ]
+
     }
     return res.status(httpStatusCodes[200].code)
     .json(formResponse(httpStatusCodes[200].code,result))
            
     } catch (error) {
+        console.log(error)
         return res.status(httpStatusCodes[500].code)
         .json(formResponse(httpStatusCodes[500].code,error))
     } 
