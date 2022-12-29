@@ -35,7 +35,18 @@ exports.createVehicle = async (req, res) => {
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Provide body`))
         return
     }
-    console.log(req.body)
+
+    const vendorDetails=await Vendor.findOne({
+        where:{
+            id:req.body.owner
+        }
+    })
+
+    if(!vendorDetails){
+        return  res.status(httpStatusCodes[404].code)
+        .json(formResponse(httpStatusCodes[404].code, "Owner/Vendor ID is invalid"))
+    }
+
     try {
 
         const { error, value } = createVehicleSchema.validate({
@@ -52,7 +63,8 @@ exports.createVehicle = async (req, res) => {
             rc_Book: req.body.rc_Book,
             pollution_certificate: req.body.pollution_certificate,
             insurance: req.body.insurance,
-            RSA: req.body.RSA
+            RSA: req.body.RSA,
+            rental_price:req.body.rental_price
         });
         if (error) {
 
@@ -90,18 +102,19 @@ exports.createVehicle = async (req, res) => {
             rc_Book: req.body.rc_Book,
             pollution_certificate: req.body.pollution_certificate,
             insurance: req.body.insurance,
-            RSA: req.body.RSA
+            RSA: req.body.RSA,
+            rental_price:req.body.rental_price
 
         })
 
         await vehicle.save()
 
         if (vehicle.errors) {
-            res.status(httpStatusCodes[404].code)
+          return  res.status(httpStatusCodes[404].code)
                 .json(formResponse(httpStatusCodes[404].code, vehicle.errors))
         }
         else {
-            res.status(httpStatusCodes[200].code)
+          return  res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, {
                     "message":"Vehicle created successfully",
                     vehicle

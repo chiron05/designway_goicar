@@ -77,6 +77,10 @@ const Vehicle = db.define('vehicle', {
     isDeleted: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    rental_price:{
+        type:DataTypes.INTEGER,
+        defaultValue:0
     }
 
 })

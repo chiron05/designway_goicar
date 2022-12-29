@@ -16,8 +16,8 @@ const createVehicleSchema = Joi.object({
     rc_Book: Joi.string().required(),
     pollution_certificate: Joi.string().required(),
     insurance: Joi.string().required(),
-    RSA: Joi.string().required()
-
+    RSA: Joi.string().required(),
+    rental_price:Joi.number().required()
 }
 )
 const updateVehicleSchema = Joi.object(
@@ -35,7 +35,8 @@ const updateVehicleSchema = Joi.object(
         rc_Book: Joi.string(),
         pollution_certificate: Joi.string(),
         insurance: Joi.string(),
-        RSA: Joi.string()
+        RSA: Joi.string(),
+        rental_price:Joi.number()
     }
 )
 

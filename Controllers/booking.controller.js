@@ -577,7 +577,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                         }
                     })
         const vehicle_details= Vehicle.findOne({
-            attributes: ["id","type","owner"],
+            attributes: ["id","type","owner","rental_price"],
             isDeleted: false,
             where: {
                 id: vehicle_id,
