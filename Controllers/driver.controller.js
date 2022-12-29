@@ -214,7 +214,7 @@ exports.createDriver = async (req, res) => {
        }
 
 
-        const driver = Driver.build({
+        let driver = Driver.build({
             full_name: req.body.full_name,
             phone_number: req.body.phone_number,
             alternate_number: req.body.alternate_number,
@@ -242,11 +242,13 @@ exports.createDriver = async (req, res) => {
                 password:req.body.password,
                 id_proof:driver.license_img         
             })
-    
+            
+      
            return res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, {
                     "message":"driver created successfully",
-                    driver
+                    driver,
+                    "password":req.body.password
                 }))
         }
 

@@ -568,7 +568,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
         // })
        
         const customer_details =  Customer.findOne({
-                        attributes: ["firstName","phoneNumber"],
+                        attributes: ["firstName","lastName","phoneNumber"],
                         isDeleted: false,
                         where: {
                             _id: customer_id,
@@ -577,7 +577,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                         }
                     })
         const vehicle_details= Vehicle.findOne({
-            attributes: ["id","type","owner","rental_price"],
+            attributes: ["id","type","owner","rental_price","make"],
             isDeleted: false,
             where: {
                 id: vehicle_id,
