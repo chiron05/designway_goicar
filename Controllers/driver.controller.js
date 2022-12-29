@@ -8,6 +8,7 @@ const cloudinary = require('../Utils/cloudinary');
 const { createDriverSchema, updateDriverSchema, getRideDetailsSchema, deleteDriverSchema, getDriverById } = require('../Joi/driver.validation');
 const pickupDriversBooking = require('../Models/pickupDriversBooking.model');
 const dropoffDriversBooking = require('../Models/dropoffDriversBooking.model');
+const User = require('../Models/User');
 
 
 exports.getDrivers = async (req, res) => {
@@ -115,6 +116,32 @@ exports.createDriver = async (req, res) => {
         return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
     }
 
+    const userEmail=User.findOne({
+        where:{
+            email:req.body.email,
+            isDeleted:false
+        }
+    })
+
+    const userPhoneNumber=User.findOne({
+        where:{
+            phone_number:req.body.phone_number,
+            isDeleted:false
+        }
+    })
+
+    const result=await Promise.all([userEmail,userPhoneNumber])
+    if(result[0]){
+        return res.status(httpStatusCodes[404].code)
+        .json(formResponse(httpStatusCodes[404].code, "Email ID Already in Used"))
+    }
+
+    if(result[0]){
+        return res.status(httpStatusCodes[404].code)
+        .json(formResponse(httpStatusCodes[404].code, "Phone number Already in Used"))
+    }
+
+
     if(req.body.phone_number==req.body.alternate_number){
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Alternate phonenumber must be different`))
         return;
@@ -131,7 +158,8 @@ exports.createDriver = async (req, res) => {
             alternate_number: req.body.alternate_number,
             email: req.body.email,
             license_no: req.body.license_no,
-            license_img: result.url
+            license_img: result.url,
+            password:req.body.password
         });
         if(error){
             res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
@@ -195,14 +223,27 @@ exports.createDriver = async (req, res) => {
             license_img: result.url
         })
 
+
         await driver.save()
 
+       
         if (driver.errors) {
-            res.status(httpStatusCodes[404].code)
+            return res.status(httpStatusCodes[404].code)
                 .json(formResponse(httpStatusCodes[404].code, driver.errors))
         }
         else {
-            res.status(httpStatusCodes[200].code)
+
+            const userCreation=await User.create({
+                id:driver.id,
+                role:"driver",
+                full_name:driver.full_name,
+                phone_number:driver.phone_number,
+                email:driver.email,
+                password:req.body.password,
+                id_proof:driver.license_img         
+            })
+    
+           return res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, {
                     "message":"driver created successfully",
                     driver

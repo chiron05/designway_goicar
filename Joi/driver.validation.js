@@ -10,9 +10,12 @@ const createDriverSchema = Joi.object({
         tlds: { allow: ["com", "in"] }
     }).required(),
     license_no: Joi.string().required(),
-    license_img: Joi.string().required()
+    license_img: Joi.string().required(),
+    password:Joi.string()
 }
 )
+
+
 
 const updateDriverSchema = Joi.object({
     full_name: Joi.string().alphanum().min(6).max(50),
@@ -23,6 +26,7 @@ const updateDriverSchema = Joi.object({
         tlds: { allow: ["com", "in"] }
     }).required(),
     license_no: Joi.string(),
+    password:Joi.string().min(3)
 }
 )
 

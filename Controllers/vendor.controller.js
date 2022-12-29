@@ -93,7 +93,8 @@ exports.getVendorById=async(req,res)=>{
 
     const vendorDetails=await Vendor.findOne({
         where:{
-            id:req.params.id
+            id:req.params.id,
+            isDeleted:false
         }
     })
 
