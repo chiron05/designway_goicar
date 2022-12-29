@@ -21,6 +21,10 @@ const createVendorSchema = Joi.object({
 }
 )
 
+const getVendorByIdSchema=Joi.object({
+    id: Joi.string().min(36).required()
+})
+
 const updateVendorSchema = Joi.object(
     {
 
@@ -48,5 +52,6 @@ const deleteVendor = Joi.object({
 module.exports = {
     createVendorSchema,
     updateVendorSchema,
-    deleteVendor
+    deleteVendor,
+    getVendorByIdSchema
 }

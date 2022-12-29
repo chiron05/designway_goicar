@@ -5,7 +5,7 @@ const { formResponse } = require('../Utils/helper');
 const { Sequelize } =require("sequelize")
 const cloudinary = require('../Utils/cloudinary');
 
-const { createVendorSchema, updateVendorSchema, deleteVendor } = require('../Joi/vendor.validation');
+const { createVendorSchema, updateVendorSchema, deleteVendor, getVendorByIdSchema } = require('../Joi/vendor.validation');
 const { object } = require('joi/lib/index.js');
 
 
@@ -80,6 +80,33 @@ exports.createVendor = async (req, res) => {
 
 
 }
+
+exports.getVendorById=async(req,res)=>{
+    
+
+    const { error, value } = getVendorByIdSchema.validate({id:req.params.id});
+    if (error) {
+
+       return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+       
+    }
+
+    const vendorDetails=await Vendor.findOne({
+        where:{
+            id:req.params.id
+        }
+    })
+
+    if(vendorDetails){
+        return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, vendorDetails))
+    }else{
+        return res.status(httpStatusCodes[404].code).json(formResponse(httpStatusCodes[404].code, "Invalid Vendor ID"))
+    }
+}
+
+
+
+
 exports.updateVendor = async (req, res) => {
 
     // if (req.body) {

@@ -8,7 +8,6 @@ const User = db.define('User', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
         allowNull: false,
-
     },
     token: {
         type: DataTypes.STRING
@@ -38,11 +37,9 @@ const User = db.define('User', {
         allowNull: false,
 
     },
-    // password
     id_proof: {
         type: DataTypes.STRING,
         allowNull: false,
-
     },
     isDeleted: {
         type: DataTypes.BOOLEAN,

@@ -32,11 +32,46 @@ app.get("/", (req, res) => {
     console.log('yes')
     res.send(`app working ` + new Date().toLocaleTimeString());
 });
-// https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=Z6lNS9RVgU2mtn1jRkUaHg&senderid=GOICar&channel=2&DCS=0&flashsms=0&number=918796728930&text=Hi test Greetings from Goicar ! Click the below link for the list of available vehicles for your rental period: goicar.in&route=1&EntityId=1701161303265683139&dlttemplateid=1707166565344586578
-app.get('/sms',async(req,res)=>{
-   sms()
-})
 
+app.get('/whatsapp',(req,res)=>{
+ var axios = require('axios');
+var data = JSON.stringify({
+  "countryCode": "+91",
+  "phoneNumber": "8390076015",
+  "callbackData": "some text here",
+  "type": "Template",
+  "template": {
+    "name": "goicar_booking_details",
+    "languageCode": "en",
+    "headerValues": [
+      "header_variable_value"
+    ],
+    "bodyValues": [
+      "Sarthak Naik",
+      "https://localhost"
+    ]
+  }
+});
+
+var config = {
+  method: 'post',
+  url: 'https://api.interakt.ai/v1/public/message/',
+  headers: { 
+    'Authorization': `Basic ${process.env.WHATSAPP_SECRET_KEY}`, 
+    'Content-Type': 'application/json'
+  },
+  data : data
+};
+
+axios(config)
+.then(function (response) {
+  console.log(JSON.stringify(response.data));
+})
+.catch(function (error) {
+  console.log(error);
+});
+
+})
 
 
 
