@@ -186,9 +186,9 @@ exports.createVehicleBooking = async (req, res) => {
             `Hello ${customer.firstName}
 
              You have received a link from Goicar. 
-             Here is your booking link http://localhost:3000/track/${req.body.customer_id}/${data._id} please click on the link to update your booking details.
+             Here is your booking link ${process.env.SHORT_URL_DOMAIN}/track/${req.body.customer_id}/${data._id} please click on the link to update your booking details.
 
-             Click here: http://localhost:3000/track/${req.body.customer_id}/${data._id}`)
+             Click here: ${process.env.SHORT_URL_DOMAIN}/${data._id}`)
 
                 res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
                     "message":"Booking done successfully",
