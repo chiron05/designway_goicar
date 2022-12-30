@@ -321,7 +321,6 @@ exports.pickup = async (req, res) => {
                 {
                     booking_id: req.body.booking_id,
                     driver: req.body.driverId,
-                    contact_num: req.body.contact_num,
                     vehicle_condition: req.body.vehicle_condition,
                     fuel_km:req.body.fuel_km,
                     fuel_tank:req.body.fuel_tank
@@ -486,7 +485,6 @@ exports.dropoff = async (req, res, next) => {
                     booking_id: req.body.booking_id,
                     // vehicle_id: req.body.vehicle_id,
                     driver: req.body.driverId,
-                    contact_num: req.body.contact_num,
                     vehicle_condition: req.body.vehicle_condition,
                     fuel_km:req.body.fuel_km,
                     fuel_tank:req.body.fuel_tank

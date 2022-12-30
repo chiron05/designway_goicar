@@ -17,14 +17,6 @@ const DropCustomer=db.define('dropcustomer',{
         type: DataTypes.STRING,
         allowNull: false
     },
-    contact_num: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-            notNull: { args: true, msg: "You must enter Phone Number" },
-            isInt: { args: true, msg: "You must enter Phone Number" }
-        }
-    },
     fuel_km:{
         type: DataTypes.INTEGER,
         allowNull:false
