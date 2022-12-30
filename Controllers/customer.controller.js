@@ -1,187 +1,201 @@
 const httpStatusCodes = require('../Constants/http-status-codes');
 const { createCustomerSchema, updateCustomer, deleteCustomer } = require('../Joi/customer.validation');
 const Customer = require('../Models/customer.model');
-const cloudinary=require('../Utils/cloudinary');
+const cloudinary = require('../Utils/cloudinary');
 const { formResponse } = require('../Utils/helper');
 const { any } = require('../Utils/multer');
-const upload=require('../Utils/multer')
+const upload = require('../Utils/multer')
 
-exports.deleteCustomer=async(req,res,next)=>{
-    
-    const {error,value}=deleteCustomer.validate({
-        _id:req.params.id
+exports.deleteCustomer = async (req, res, next) => {
+
+    const { error, value } = deleteCustomer.validate({
+        _id: req.params.id
     });
-    if(error){
-        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
-        return 
-    }else{
-        const customerDeatails=await Customer.findOne(
+    if (error) {
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+        return
+    } else {
+        const customerDeatails = await Customer.findOne(
             {
-            attributes:["isDeleted"],
-            where:{
-                _id:req.params.id
+                attributes: ["isDeleted"],
+                where: {
+                    _id: req.params.id
+                }
+            })
+        if (customerDeatails) {
+            if (customerDeatails.dataValues.isDeleted) {
+                return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `No Customer available for CustomerID: ${req.params.id}`))
             }
-        })
-        if(customerDeatails)
-        {
-        if(customerDeatails.dataValues.isDeleted){
-            return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`No Customer available for CustomerID: ${ req.params.id}`))
-        }
 
-        Customer.update({
-            isDeleted:true
-        },{
-            where:{
-                _id:req.params.id
-            }
-        }).then(result=>{
-            
-            console.log(result)
-            if(result){
-                res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,`Customer Deleted successfully`))
-            }
-            else{
-                res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`No Customer available for CustomerID: ${ req.params.id}`))
-            }     
-        }).catch(err=>{
-            res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[400].code, err))
-        })
-    }
-    else{
-        res.status(httpStatusCodes[400].code)
-        .json(formResponse(httpStatusCodes[400].code, err))
-    }
+            Customer.update({
+                isDeleted: true
+            }, {
+                where: {
+                    _id: req.params.id
+                }
+            }).then(result => {
+
+                console.log(result)
+                if (result) {
+                    res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, `Customer Deleted successfully`))
+                }
+                else {
+                    res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `No Customer available for CustomerID: ${req.params.id}`))
+                }
+            }).catch(err => {
+                res.status(httpStatusCodes[404].code)
+                    .json(formResponse(httpStatusCodes[400].code, err))
+            })
+        }
+        else {
+            res.status(httpStatusCodes[400].code)
+                .json(formResponse(httpStatusCodes[400].code, err))
+        }
 
     }
 }
 
 
 
-exports.updateCustomer=async(req,res,next)=>{
-    if(Object.keys(req.body).length === 0){
-        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
+exports.updateCustomer = async (req, res, next) => {
+    if (Object.keys(req.body).length === 0) {
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Body is empty"))
     }
-    const {error,value}=updateCustomer.validate({
-        _id:req.params.id,
-        firstName:req.body.firstName,
-        lastName:req.body.lastName,
-        email:req.body.email,
-        phoneNumber:req.body.phoneNumber,
+    const { error, value } = updateCustomer.validate({
+        _id: req.params.id,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        phoneNumber: req.body.phoneNumber,
     });
-    if(error){
-        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
-        return 
+    if (error) {
+        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+        return
     }
-    else{
+    else {
         Customer.update(
             req.body,
-            { where: { _id: req.params.id,isDeleted:false } }
-          )
-            .then(result =>{
-                if(result[0]){
-                    res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,`Customer Updated successfully`))
+            { where: { _id: req.params.id, isDeleted: false } }
+        )
+            .then(result => {
+                if (result[0]) {
+                    res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, `Customer Updated successfully`))
                 }
-                else{
-                    res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,`No Customer available for CustomerID: ${ req.params.id}`))
-                }     
-            }     
+                else {
+                    res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `No Customer available for CustomerID: ${req.params.id}`))
+                }
+            }
             )
             .catch(err =>
                 res.status(httpStatusCodes[400].code)
-                .json(formResponse(httpStatusCodes[400].code, err))
+                    .json(formResponse(httpStatusCodes[400].code, err))
             )
     }
 }
 
-exports.getCustomer=async(req,res)=>{
+exports.getCustomer = async (req, res) => {
     Customer.findAll({
-        attributes:["_id","firstName","lastName","email","phoneNumber","idProofURL","alternate_number"],
-        where:{
-            isDeleted:false
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        where: {
+            isDeleted: false
         }
-    }).then(result=>{
+    }).then(result => {
         res.status(httpStatusCodes[200].code)
-        .json(formResponse(httpStatusCodes[200].code, result))
-    }).catch(err=>{
+            .json(formResponse(httpStatusCodes[200].code, result))
+    }).catch(err => {
         res.status(httpStatusCodes[404].code)
-        .json(formResponse(httpStatusCodes[404].code, err))
+            .json(formResponse(httpStatusCodes[404].code, err))
     })
 }
 
-exports.createCustomer=async(req,res,next)=>{
-    if(Object.keys(req.body).length === 0){
-        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Body is empty"))    
+exports.createCustomer = async (req, res, next) => {
+    if (Object.keys(req.body).length === 0) {
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Body is empty"))
     }
-    if(req.body.phoneNumber==req.body.alternate_number){
+    if (req.body.phoneNumber == req.body.alternate_number) {
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Alternate phonenumber must be different`))
         return;
     }
     try {
-        const result=await cloudinary.uploader.upload(req.file.path);
-        const {error,value}=createCustomerSchema.validate({
-            firstName:req.body.firstName,
-            lastName:req.body.lastName,
-            email:req.body.email,
-            alternate_number:req.body.alternate_number,
-            validUntil:req.body.validUntil,
-            idNumber:req.body.idNumber,
-            phoneNumber:req.body.phoneNumber,
-            idProofURL:result.url
+        const result = await cloudinary.uploader.upload(req.file.path);
+        const { error, value } = createCustomerSchema.validate({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            alternate_number: req.body.alternate_number,
+            validUntil: req.body.validUntil,
+            idNumber: req.body.idNumber,
+            phoneNumber: req.body.phoneNumber,
+            idProofURL: result.url
         });
-        if(error){
-            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))     
-            return 
+        if (error) {
+            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+            return
         }
 
-        const existingCustomer=await Customer.findOne({
-            attributes:["email"],
-            where:{
-                email:req.body.email,
-                isDeleted:true
+        const existingCustomer = await Customer.findOne({
+            attributes: ["email"],
+            where: {
+                email: req.body.email,
+                isDeleted: true
             }
         })
-       if(existingCustomer){
-            const customerDelete=await Customer.destroy({
+        if (existingCustomer) {
+            const customerDelete = await Customer.destroy({
                 where: {
-                    email:req.body.email
+                    email: req.body.email
                 }
             })
-       }
+        }
 
-        let data= Customer.build({
-            firstName:req.body.firstName,
-            lastName:req.body.lastName,
-            email:req.body.email,
-            alternate_number:req.body.alternate_number,
-            validUntil:req.body.validUntil,
-            idNumber:req.body.idNumber,
-            phoneNumber:req.body.phoneNumber,
-            idProofURL:result.url
+        let data = Customer.build({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            alternate_number: req.body.alternate_number,
+            validUntil: req.body.validUntil,
+            idNumber: req.body.idNumber,
+            phoneNumber: req.body.phoneNumber,
+            idProofURL: result.url
         })
 
         await data.save();
 
-        if(data.errors){
+        if (data.errors) {
             res.status(httpStatusCodes[400].code)
-            .json(formResponse(httpStatusCodes[400].code, data.errors))
+                .json(formResponse(httpStatusCodes[400].code, data.errors))
         }
-        else{
+        else {
             res.status(httpStatusCodes[200].code)
-            .json(formResponse(httpStatusCodes[200].code, {
-                "message":"Customer created successfully",
-                data
-            }))
+                .json(formResponse(httpStatusCodes[200].code, {
+                    "message": "Customer created successfully",
+                    data
+                }))
         }
-       
-       
+
+
     } catch (error) {
         console.log(error)
         res.status(httpStatusCodes[400].code)
-        .json(formResponse(httpStatusCodes[400].code, error))
-    
+            .json(formResponse(httpStatusCodes[400].code, error))
+
     }
 
 
 }
 
+exports.getCustomerByPhone = async (req, res) => {
+    Customer.findOne({
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        where: {
+            phoneNumber: req.params.no,
+
+        }
+    }).then(result => {
+        res.status(httpStatusCodes[200].code)
+            .json(formResponse(httpStatusCodes[200].code, result))
+    }).catch(err => {
+        res.status(httpStatusCodes[404].code)
+            .json(formResponse(httpStatusCodes[404].code, err))
+    })
+}

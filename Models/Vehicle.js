@@ -78,9 +78,14 @@ const Vehicle = db.define('vehicle', {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
-    rental_price:{
-        type:DataTypes.INTEGER,
-        defaultValue:0
+    rental_price: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    }
+    ,
+    Hub: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 
 })
@@ -94,6 +99,6 @@ Vehicle.belongsTo(Vendor, {
 })
 
 Vehicle.sync({
-    // alter:true
+    // alter: true
 })
 module.exports = Vehicle

@@ -1,56 +1,57 @@
-const { DataTypes }=require('sequelize')
-const db=require('../config/db.js');
+const { DataTypes } = require('sequelize')
+const db = require('../config/db.js');
 const shortUrl = require('./shortUrl.model.js');
 
-const Customer=db.define('customer',{
+const Customer = db.define('customer', {
 
     _id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
         allowNull: false,
-      },
-    firstName:{
+    },
+    firstName: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    lastName:{
+    lastName: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    email:{
+    email: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true
     },
-    phoneNumber:{
+    phoneNumber: {
         type: DataTypes.STRING,
         allowNull: false,
-       validate: {
-        notNull: { args: true, msg: "You must enter Phone Number" },
-        isInt: { args: true, msg: "You must enter Phone Number" }
-    }},
-    alternate_number:{
-        type: DataTypes.STRING,
-        unique:true
+        validate: {
+            notNull: { args: true, msg: "You must enter Phone Number" },
+            isInt: { args: true, msg: "You must enter Phone Number" }
+        }
     },
-    idNumber:{
+    alternate_number: {
+        type: DataTypes.STRING,
+        unique: true
+    },
+    idNumber: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    validUntil:{
-        type:DataTypes.DATE,
-        allowNull:false
+    validUntil: {
+        type: DataTypes.DATE,
+        allowNull: false
     },
-    idProofURL:{
-       type: DataTypes.STRING,
-       allowNull:false
-     },
-    isDeleted:{
+    idProofURL: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    isDeleted: {
         type: DataTypes.BOOLEAN,
-        defaultValue:false
+        defaultValue: false
     }
-    
+
 })
 
 
@@ -58,7 +59,7 @@ const Customer=db.define('customer',{
 Customer.sync({
     // alter:true
 })
-module.exports=Customer
+module.exports = Customer
 
 
 
