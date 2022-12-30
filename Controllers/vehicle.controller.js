@@ -64,7 +64,8 @@ exports.createVehicle = async (req, res) => {
             pollution_certificate: req.body.pollution_certificate,
             insurance: req.body.insurance,
             RSA: req.body.RSA,
-            rental_price:req.body.rental_price
+            rental_price:req.body.rental_price,
+            Hub:req.body.Hub
         });
         if (error) {
 
@@ -103,7 +104,8 @@ exports.createVehicle = async (req, res) => {
             pollution_certificate: req.body.pollution_certificate,
             insurance: req.body.insurance,
             RSA: req.body.RSA,
-            rental_price:req.body.rental_price
+            rental_price:req.body.rental_price,
+            Hub:req.body.Hub
 
         })
 
