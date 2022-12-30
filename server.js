@@ -11,6 +11,7 @@ const helmet=require('helmet')
 const axios=require('axios')
 const cors = require('cors');
 const { sms } = require('./services/sms.js');
+const { emailNotify } = require('./services/email.js');
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -32,6 +33,20 @@ app.get("/", (req, res) => {
     console.log('yes')
     res.send(`app working ` + new Date().toLocaleTimeString());
 });
+
+
+app.get('/email',(req,res)=>{
+  var message=`
+  <p style='font-weight:bold;'> Hi. My name is John </p>
+  <h1>i am having pick up at</h1></br>
+  <h1>at this location</h1>
+  `
+
+  emailNotify('sarthaknaik010@gmail.com','pata nahi',message)
+
+  res.send('done')
+
+})
 
 app.get('/whatsapp',(req,res)=>{
  var axios = require('axios');

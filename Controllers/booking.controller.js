@@ -6,7 +6,7 @@ const Customer = require('../Models/customer.model')
 const cloudinary = require('../Utils/cloudinary')
 const Driver = require('../Models/Driver')
 const { emailNotify } = require('../services/email')
-const { whatsappNotify } = require('../services/whatsapp')
+const { whatsappNotify, whatsappPickCustomerNotify, whatsappDriverNotify, whatsappDropCustomerNotify } = require('../services/whatsapp')
 const { formResponse } = require('../Utils/helper')
 const httpStatusCodes = require('../Constants/http-status-codes')
 const shortUrl = require('../Models/shortUrl.model')
@@ -275,9 +275,10 @@ exports.pickup = async (req, res) => {
                     isAvailable:true
                 }
             })
-            console.log(!DriverDetails)
+            console.log(DriverDetails)
+
             if(!DriverDetails){
-                console.log("heyy");
+              
               return  res.status(httpStatusCodes[400].code)
                 .json(formResponse(httpStatusCodes[400].code,  "Please provide valid Driver ID"))
       
@@ -289,7 +290,7 @@ exports.pickup = async (req, res) => {
                     booking_status: "pending",
                     isDeleted:false
                 },
-                attributes: ["customer_id"]
+                attributes: ["_id","customer_id","pickup_date","pickup_time","pickup_location","dropoff_date","dropoff_time","dropoff_location"]
             })
 
            
@@ -299,15 +300,14 @@ exports.pickup = async (req, res) => {
                     .json(formResponse(httpStatusCodes[400].code, "Booking ID is InValid"))
             }
             const customerDetails = await Customer.findOne({
-                attributes: ["email", "phoneNumber"],
+                attributes: ["firstName","lastName","email", "phoneNumber"],
                 where: {
                     _id: booking_details.dataValues.customer_id,
                     isDeleted: false
                 }
             })
-            console.log(booking_details.dataValues.customer_id)
+          
             if (!DriverDetails || !customerDetails) {
-
                 res.status(httpStatusCodes[400].code)
                     .json(formResponse(httpStatusCodes[400].code,  "Please provide valid Data"))
                 return;
@@ -316,7 +316,6 @@ exports.pickup = async (req, res) => {
             const pickUp = await PickCustomer.create(
                 {
                     booking_id: req.body.booking_id,
-                    // vehicle_id: req.body.vehicle_id,
                     driver: req.body.driverId,
                     contact_num: req.body.contact_num,
                     vehicle_condition: req.body.vehicle_condition,
@@ -333,32 +332,50 @@ exports.pickup = async (req, res) => {
                }
             })
 
-            const CustomerEmailError = await emailNotify(customerDetails.email, 'subject', 'having this ride');
-            const CustomerWhatAppError = await whatsappNotify('having this ride', customerDetails.phoneNumber);
-            const DriverEmailError = await emailNotify(DriverDetails.email, 'subject', 'having this ride');
-            const DriverWhatAppError = await whatsappNotify('having this ride', DriverDetails.phone_number);
-            // if(CustomerEmailError || CustomerWhatAppError||DriverEmailError||DriverWhatAppError){
-            //     res.status(httpStatusCodes[404].code)
-            //     .json(formResponse(httpStatusCodes[404].code, {
-            //         "DriverEmailError":DriverEmailError,
-            //         "DriverWhatsAppError":DriverWhatAppError,
-            //         "CustomerEmailError":CustomerEmailError,
-            //         "CustomerWhatAppError":CustomerWhatAppError
-            //     }))
-            //     return;
-            // }
-            // else{
+            let customerEmail=`
+                Hello ${customerDetails.firstName+" "+customerDetails.lastName}
+
+                Your Pickup Details
+                Booking ID : ${req.body.booking_id}
+                Pickup location : ${booking_details.pickup_location}
+                Pickup Date :  ${booking_details.pickup_date}
+                Pickup time :  ${booking_details.pickup_time}
+
+                Driver :  ${DriverDetails.full_name} 
+                Driver phone number :  ${DriverDetails.phone_number}
+            `
+
+            let driverEmail=`
+            Hello ${DriverDetails.full_name} 
+
+            You having a pickup 
+            location : ${booking_details.pickup_location}
+            date : ${booking_details.pickup_date}
+            time: ${booking_details.pickup_time}
+
+            Customer Name :  ${customerDetails.firstName+" "+customerDetails.lastName}
+            Customer Phone number : ${customerDetails.phoneNumber}
+            `
+            const CustomerEmailError = await emailNotify(customerDetails.email, 'Pickup registration done successfully',customerEmail);
+
+            whatsappPickCustomerNotify(customerDetails.firstName+" "+customerDetails.lastName,req.body.booking_id,booking_details.pickup_location,booking_details.pickup_date,booking_details.pickup_time,DriverDetails.full_name,DriverDetails.phone_number,customerDetails.phoneNumber)
+
+            const DriverEmailError = await emailNotify(DriverDetails.email,"", driverEmail);
+
+            whatsappDriverNotify(DriverDetails.full_name,booking_details.pickup_location,booking_details.pickup_date,booking_details.pickup_time,customerDetails.firstName+" "+customerDetails.lastName,customerDetails.phoneNumber,DriverDetails.phone_number)
+
+
             res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, {
                     "message":"Driver informed successfully for pickup",
                     pickUp
                 }))
             return;
-            // }
+        
         }
         catch (error) {
             console.log(error)
-            res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, error))
+           return res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, error))
         }
     }
 
@@ -439,7 +456,7 @@ exports.dropoff = async (req, res, next) => {
                     _id: req.body.booking_id,
                     booking_status: "pending"
                 },
-                attributes: ["customer_id"]
+                attributes: ["_id","customer_id","pickup_date","pickup_time","pickup_location","dropoff_date","dropoff_time","dropoff_location"]
             })
 
             if (!booking_details) {
@@ -447,7 +464,7 @@ exports.dropoff = async (req, res, next) => {
                     .json(formResponse(httpStatusCodes[400].code, "Booking ID is InValid"))
             }
             const customerDetails = await Customer.findOne({
-                attributes: ["email", "phoneNumber"],
+                attributes: ["firstName","lastName","email", "phoneNumber"],
                 where: {
                     _id: booking_details.dataValues.customer_id,
                     isDeleted: false
@@ -481,21 +498,38 @@ exports.dropoff = async (req, res, next) => {
             })
 
 
-            const CustomerEmailError = await emailNotify(customerDetails.email, 'subject', 'yo having this ride');
-            const CustomerWhatAppError = await whatsappNotify('kyaa bhaiii', customerDetails.phoneNumber);
-            const DriverEmailError = await emailNotify(DriverDetails.email, 'subject', 'yo having this ride');
-            const DriverWhatAppError = await whatsappNotify('kyaa bhaiii', DriverDetails.phone_number);
-            // if(CustomerEmailError || CustomerWhatAppError||DriverEmailError||DriverWhatAppError){
-            //     res.status(httpStatusCodes[404].code)
-            //     .json(formResponse(httpStatusCodes[404].code, {
-            //         "DriverEmailError":DriverEmailError,
-            //         "DriverWhatsAppError":DriverWhatAppError,
-            //         "CustomerEmailError":CustomerEmailError,
-            //         "CustomerWhatAppError":CustomerWhatAppError
-            //     }))
-            //     return;
-            // }
-            // else{
+            let customerEmail=`
+                Hello ${customerDetails.firstName+" "+customerDetails.lastName}
+
+                Your Drop Off Details
+                Booking ID : ${req.body.booking_id}
+                DropOff location : ${booking_details.dropoff_location}
+                DropOff Date :  ${booking_details.dropoff_date}
+                DropOff time :  ${booking_details.dropoff_time}
+
+                Driver :  ${DriverDetails.full_name} 
+                Driver phone number :  ${DriverDetails.phone_number}
+            `
+
+            let driverEmail=`
+            Hello ${DriverDetails.full_name} 
+
+            You having a Drop Off 
+            location : ${booking_details.dropoff_location}
+            date : ${booking_details.dropoff_date}
+            time: ${booking_details.dropoff_time}
+
+            Customer Name :  ${customerDetails.firstName+" "+customerDetails.lastName}
+            Customer Phone number : ${customerDetails.phoneNumber}
+            `
+            const CustomerEmailError = await emailNotify(customerDetails.email, 'Drop Off registration done successfully',customerEmail);
+
+            whatsappDropCustomerNotify(customerDetails.firstName+" "+customerDetails.lastName,req.body.booking_id,booking_details.dropoff_location,booking_details.dropoff_date,booking_details.dropoff_time,DriverDetails.full_name,DriverDetails.phone_number,customerDetails.phoneNumber)
+
+            const DriverEmailError = await emailNotify(DriverDetails.email,"", driverEmail);
+            
+            whatsappDriverNotify(DriverDetails.full_name,booking_details.dropoff_location,booking_details.dropoff_date,booking_details.dropoff_time,customerDetails.firstName+" "+customerDetails.lastName,customerDetails.phoneNumber,DriverDetails.phone_number)
+
             return res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, {
                     "message":"Driver informed successfully for dropoff",
@@ -505,7 +539,7 @@ exports.dropoff = async (req, res, next) => {
             // }
         }
         catch (error) {
-            
+            console.log(error)
             return res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code, error))
         }
     }

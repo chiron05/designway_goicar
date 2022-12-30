@@ -11,14 +11,16 @@ var transporter = nodemailer.createTransport({
 
 
 
+
 exports.emailNotify=async(to,subject,text)=>{
-    
+  
     try {
       var mailOptions = {
         from: 'sarthaknaik010@gmail.com',
         to,
         subject,
-        text
+        text,
+        html: text
       };
    const sent= await transporter.sendMail(mailOptions);
     } catch (error) {
