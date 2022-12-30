@@ -32,7 +32,6 @@ const Customer=db.define('customer',{
     }},
     alternate_number:{
         type: DataTypes.STRING,
-        allowNull:false,
         unique:true
     },
     idNumber:{

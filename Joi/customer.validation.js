@@ -10,7 +10,7 @@ const createCustomerSchema=Joi.object({
         tlds:{allow:["com","in"]}
     }).required(),
     validUntil:Joi.date(),
-    alternate_number:Joi.string().required(),
+    alternate_number:Joi.string(),
     idNumber:Joi.number().required(),
     phoneNumber:Joi.string().length(12).pattern(/^[0-9]+$/).required(),
     idProofURL:Joi.string().required()
