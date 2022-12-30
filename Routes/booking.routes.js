@@ -9,9 +9,7 @@ bookingRoute.post('/vehicle-booking', createVehicleBooking)
 bookingRoute.get('/vehicle-booking', getAllBooking)
 
 bookingRoute.put('/vehicle-booking/:id', updateVehicleBooking)
-bookingRoute.get('/vehicle-booking/:id', getBooking)//me
-
-
+bookingRoute.get('/vehicle-booking/:id', getBooking)
 
 bookingRoute.post('/vehicle-booking/pickup', pickup)
 bookingRoute.put('/vehicle-booking/pickup/:id', updatepickup)

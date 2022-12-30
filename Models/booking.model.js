@@ -42,14 +42,23 @@ const Booking = db.define('booking', {
         allowNull: false,
         required: true
     },
-    vehicle_type: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
     pickup_location: {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    total_rent:{
+        type: DataTypes.BIGINT,
+        allowNull: false,
+    },
+    deposit_amount:{
+        type: DataTypes.BIGINT,
+        allowNull: false,
+    },
+    per_day_rent:{
+        type: DataTypes.BIGINT,
+        allowNull: false
+    }
+    ,
     dropoff_location: {
         type: DataTypes.STRING,
         allowNull: false,

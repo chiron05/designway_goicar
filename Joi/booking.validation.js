@@ -11,12 +11,14 @@ const updateBookingSchema=Joi.object({
    vehicle_id:Joi.string().min(36),
    pickup_date:Joi.date(),
    dropoff_date:Joi.date(),
-   vehicle_type:Joi.string(),
    pickup_location:Joi.string(),
    dropoff_location:Joi.string(),
    duration:Joi.string(),
    booking_status:Joi.string(),
-   bookingid:Joi.string().min(36)
+   bookingid:Joi.string().min(36),
+   total_rent:Joi.number(),
+   deposit_amount:Joi.number(),
+   per_day_rent:Joi.number()
 });
 
 const createBookingSchema=Joi.object({
@@ -24,10 +26,12 @@ const createBookingSchema=Joi.object({
    vehicle_id:Joi.string().min(36),
    pickup_date:Joi.date(),
    dropoff_date:Joi.date(),
-   vehicle_type:Joi.string(),
    pickup_location:Joi.string(),
    dropoff_location:Joi.string(),
    duration:Joi.string(),
+   total_rent:Joi.number(),
+   deposit_amount:Joi.number(),
+   per_day_rent:Joi.number()
 });
 
 const updatePickDropSchema=Joi.object({

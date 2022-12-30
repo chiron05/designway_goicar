@@ -131,10 +131,12 @@ exports.createVehicleBooking = async (req, res) => {
             vehicle_id: req.body.vehicle_id,
             pickup_date: req.body.pickup_date,
             dropoff_date: req.body.dropoff_date,
-            vehicle_type: req.body.vehicle_type,
             pickup_location: req.body.pickup_location,
             dropoff_location: req.body.dropoff_location,
-            duration: req.body.duration
+            duration: req.body.duration,
+            total_rent:req.body.total_rent,
+            deposit_amount:req.body.deposit_amount,
+            per_day_rent:req.body.per_day_rent
         }
     );
     if (error) {
@@ -160,10 +162,12 @@ exports.createVehicleBooking = async (req, res) => {
                 pickup_time: req.body.pickup_time,
                 dropoff_date: req.body.dropoff_date,
                 dropoff_time: req.body.dropoff_time,
-                vehicle_type: req.body.vehicle_type,
                 pickup_location: req.body.pickup_location,
                 dropoff_location: req.body.dropoff_location,
-                duration: req.body.duration
+                duration: req.body.duration,
+                total_rent:req.body.total_rent,
+                deposit_amount:req.body.deposit_amount,
+                per_day_rent:req.body.per_day_rent
             })
             await data.save();
 
@@ -593,13 +597,6 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
         
     ]
     try {
-        // const bookingDetails=await Booking.findOne({
-        //     where:{
-        //         _id: booking_id,
-        //         isDeleted:false
-        //     },
-        //     attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","vehicle_type","pickup_location","dropoff_location","duration"]
-        // })
        
         const customer_details =  Customer.findOne({
                         attributes: ["firstName","lastName","phoneNumber"],
@@ -619,15 +616,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
         })
 
         const res=await Promise.all([customer_details,vehicle_details])
-     
-        // const vendorDetails=await Vendor.findOne({
-        //     attributes: ["id", "full_name","address","city","state","pincode","email","phone_number","alternate_number","id_proof","id_no"],
-        //     isDeleted: false,
-        //     where: {
-        //         id: res[1].dataValues.owner,
-        //     }
-        // })
-       
+
         const pickup_details = PickCustomer.findOne({
                         attributes: ["_id","driver"],
                         where: {
@@ -770,7 +759,7 @@ exports.getBooking = async (req, res)=>{
             _id: req.params.id,
             isDeleted:false
         },
-        attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","vehicle_type","pickup_location","dropoff_location","duration"],
+        attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","pickup_location","dropoff_location","duration","total_rent","deposit_amount","per_day_rent"],
     })
 
     
@@ -803,7 +792,7 @@ exports.getAllBooking=async(req,res)=>{
     let result=[]
     try {
         const allBookingID=await Booking.findAll({ 
-            attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","vehicle_type","pickup_location","dropoff_location","duration"],
+            attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","pickup_location","dropoff_location","duration","total_rent","deposit_amount","per_day_rent"],
             limit:10,
             offset:skip
         })
