@@ -189,11 +189,17 @@ exports.getCustomerByPhone = async (req, res) => {
         attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
         where: {
             phoneNumber: req.params.no,
-
         }
     }).then(result => {
-        res.status(httpStatusCodes[200].code)
+
+        if(result){
+            return   res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
+        }else{
+            return  res.status(httpStatusCodes[404].code)
+            .json(formResponse(httpStatusCodes[404].code, "No Customer available"))
+        }
+      
     }).catch(err => {
         res.status(httpStatusCodes[404].code)
             .json(formResponse(httpStatusCodes[404].code, err))

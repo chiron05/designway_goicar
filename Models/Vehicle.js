@@ -85,6 +85,7 @@ const Vehicle = db.define('vehicle', {
     ,
     Hub: {
         type: DataTypes.STRING,
+        defaultValue:'',
         allowNull: false
     }
 
