@@ -57,11 +57,11 @@ exports.confirmBooking = async (req, res) => {
                 }))
             } catch (error) {
 
-                res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+             return   res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
             }
         }
         else {
-            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking found"))
+          return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking found"))
         }
 
     }
@@ -69,13 +69,14 @@ exports.confirmBooking = async (req, res) => {
 }
 
 exports.updateVehicleBooking = async (req, res) => {
+    console.log(req.params.id)
     if (Object.keys(req.body).length === 0) {
         return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Body is empty"))
     }
 
     let validationObject = {
         ...req.body,
-        bookingid: req.params.id
+        _id: req.params.id
     }
     const { error, value } = updateBookingSchema.validate(validationObject);
     if (error) {

@@ -7,11 +7,12 @@ const confirmBookingSchema=Joi.object({
 });
 
 const updateBookingSchema=Joi.object({
-   _id:Joi.string().min(36).required(),
+   _id:Joi.string().min(36),
    vehicle_id:Joi.string().min(36),
    pickup_date:Joi.date(),
-   pickup_time:Joi.date(),
-   dropoff_time:Joi.date(),
+   pickup_time:Joi.string(),
+   dropoff_time:Joi.string(),
+   customer_id:Joi.string().min(36),
    dropoff_date:Joi.date(),
    pickup_location:Joi.string(),
    dropoff_location:Joi.string(),
@@ -27,8 +28,8 @@ const createBookingSchema=Joi.object({
    customer_id:Joi.string().min(36),
    vehicle_id:Joi.string().min(36),
    pickup_date:Joi.date(),
-   pickup_time:Joi.date(),
-   dropoff_time:Joi.date(),
+   pickup_time:Joi.string(),
+   dropoff_time:Joi.string(),
    dropoff_date:Joi.date(),
    pickup_location:Joi.string(),
    dropoff_location:Joi.string(),
