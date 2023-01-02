@@ -10,10 +10,13 @@ const { object } = require('joi/lib/index.js');
 
 
 exports.getVendors = async (req, res) => {
+    let skip=10*(req.query.page);
     await Vendor.findAll({
         where:{
             isDeleted:false
-        }
+        },
+        limit:10,
+        offset:skip
     }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))

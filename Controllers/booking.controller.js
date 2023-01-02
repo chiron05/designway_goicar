@@ -800,7 +800,7 @@ exports.getBooking = async (req, res)=>{
 }
 
 exports.getAllBooking=async(req,res)=>{
-    let skip=5*(req.query.page);
+    let skip=10*(req.query.page);
     let result=[]
     try {
         const allBookingID=await Booking.findAll({ 

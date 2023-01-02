@@ -132,11 +132,14 @@ exports.createVehicle = async (req, res) => {
 }
 
 exports.getAllVehicle = async (req, res) => {
+    let skip=10*(req.query.page);
     await Vehicle.findAll({
         include: [{ model: Vendor }],
         where:{
             isDeleted:false
-        }
+        },
+        limit:10,
+        offset:skip
     }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))

@@ -12,10 +12,13 @@ const User = require('../Models/User');
 
 
 exports.getDrivers = async (req, res) => {
+    let skip=10*(req.query.page);
     await Driver.findAll({
         where:{
             isDeleted:false
-        }
+        },
+        limit:10,
+        offset:skip
     }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))

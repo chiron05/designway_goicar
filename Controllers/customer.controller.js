@@ -95,8 +95,11 @@ exports.updateCustomer = async (req, res, next) => {
 }
 
 exports.getCustomer = async (req, res) => {
+    let skip=10*(req.query.page);
     Customer.findAll({
         attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        limit:10,
+        offset:skip,
         where: {
             isDeleted: false
         }
