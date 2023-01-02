@@ -3,8 +3,7 @@ const { createCustomerSchema, updateCustomer, deleteCustomer } = require('../Joi
 const Customer = require('../Models/customer.model');
 const cloudinary = require('../Utils/cloudinary');
 const { formResponse } = require('../Utils/helper');
-const { any } = require('../Utils/multer');
-const upload = require('../Utils/multer')
+
 
 exports.deleteCustomer = async (req, res, next) => {
 
@@ -12,14 +11,15 @@ exports.deleteCustomer = async (req, res, next) => {
         _id: req.params.id
     });
     if (error) {
-        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+       return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
         return
     } else {
         const customerDeatails = await Customer.findOne(
             {
                 attributes: ["isDeleted"],
                 where: {
-                    _id: req.params.id
+                    _id: req.params.id,
+                    isDeleted:false
                 }
             })
         if (customerDeatails) {
@@ -31,7 +31,8 @@ exports.deleteCustomer = async (req, res, next) => {
                 isDeleted: true
             }, {
                 where: {
-                    _id: req.params.id
+                    _id: req.params.id,
+                    isDeleted:false
                 }
             }).then(result => {
 
@@ -189,9 +190,35 @@ exports.getCustomerByPhone = async (req, res) => {
         attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
         where: {
             phoneNumber: req.params.no,
+            isDeleted:false
         }
     }).then(result => {
 
+        if(result){
+            return   res.status(httpStatusCodes[200].code)
+            .json(formResponse(httpStatusCodes[200].code, result))
+        }else{
+            return  res.status(httpStatusCodes[404].code)
+            .json(formResponse(httpStatusCodes[404].code, "No Customer available"))
+        }
+      
+    }).catch(err => {
+        res.status(httpStatusCodes[404].code)
+            .json(formResponse(httpStatusCodes[404].code, err))
+    })
+}
+
+
+
+exports.getCustomerById = async (req, res) => {
+    Customer.findOne({
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        where: {
+            _id: req.params.id,
+            isDeleted:false
+        }
+    }).then(result => {
+       
         if(result){
             return   res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))

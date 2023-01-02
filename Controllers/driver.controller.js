@@ -28,7 +28,8 @@ exports.getDrivers = async (req, res) => {
 exports.additonalPickUpDriver=async(req,res)=>{
     const pickUpdetails=await PickCustomer.findOne({
        where:{
-        _id:req.body.pickup_id
+        _id:req.body.pickup_id,
+        isDeleted:false
        }
     })
 
@@ -344,7 +345,8 @@ exports.getDriverById=async(req,res)=>{
 
     const result=await Driver.findOne({
         where:{
-            id:req.params.id
+            id:req.params.id,
+            isDeleted:false
         }
     })
 
@@ -373,7 +375,8 @@ exports.getRideDetails=async(req,res)=>{
     {
         let booking=await PickCustomer.findAll({
             where:{
-                driver:req.params.id
+                driver:req.params.id,
+                isDeleted:false
             }
         })
        if(booking.length==0){
@@ -389,7 +392,8 @@ exports.getRideDetails=async(req,res)=>{
     {
         let booking=await DropCustomer.findAll({
             where:{
-                driver:req.params.id
+                driver:req.params.id,
+                isDeleted:false
             }
         })
         if(booking.length==0){

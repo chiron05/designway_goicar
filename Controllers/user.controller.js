@@ -39,7 +39,11 @@ exports.updateUser=async(req,res)=>{
 }
 
 exports.getUser=async(req,res)=>{
-    const users=await User.findAll();
+    const users=await User.findAll({
+        where:{
+            isDeleted:false
+        }
+    });
     res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,users))
 }
 

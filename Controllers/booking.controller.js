@@ -34,7 +34,7 @@ exports.confirmBooking = async (req, res) => {
     const { error, value } = confirmBookingSchema.validate(validationObject);
     if (error) {
 
-        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+       return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
     }
     else {
         let uniqueID = Math.random().toString(36).replace(/[^a-z0-9]/gi, '').substring(2, 10);
@@ -147,7 +147,8 @@ exports.createVehicleBooking = async (req, res) => {
 
             const customer = await Customer.findOne({
                 where: {
-                    _id: req.body.customer_id
+                    _id: req.body.customer_id,
+                    isDeleted:false
                 },
                 attributes: ["_id","email","firstName","phoneNumber"]
             })
@@ -175,7 +176,8 @@ exports.createVehicleBooking = async (req, res) => {
                 isBooked:true
             },{
                 where:{
-                    id:req.body.vehicle_id
+                    id:req.body.vehicle_id,
+                    isDeleted:false
                 },
                 attributes:["id"]
             })
@@ -226,7 +228,8 @@ exports.updatepickup = async (req, res) => {
             const cancelledBooking = await Booking.findOne({
                 where: {
                     _id: req.params.id,
-                    booking_status: 'cancelled'
+                    booking_status: 'cancelled',
+                    isDeleted:false
                 }
             })
 
@@ -331,7 +334,8 @@ exports.pickup = async (req, res) => {
                 isAvailable:false
             },{
                where:{
-                id:req.body.driverId
+                id:req.body.driverId,
+                isDeleted:false
                }
             })
 
@@ -400,7 +404,8 @@ exports.updatedropoff = async (req, res) => {
             const cancelledBooking = await Booking.findOne({
                 where: {
                     _id: req.params.id,
-                    booking_status: 'cancelled'
+                    booking_status: 'cancelled',
+                    isDeleted:false
                 }
             })
 
@@ -457,7 +462,8 @@ exports.dropoff = async (req, res, next) => {
             const booking_details = await Booking.findOne({
                 where: {
                     _id: req.body.booking_id,
-                    booking_status: "pending"
+                    booking_status: "pending",
+                    isDeleted:false
                 },
                 attributes: ["_id","customer_id","pickup_date","pickup_time","pickup_location","dropoff_date","dropoff_time","dropoff_location"]
             })
@@ -495,7 +501,8 @@ exports.dropoff = async (req, res, next) => {
                 isAvailable:false
             },{
                 where:{
-                    id:req.body.driverId
+                    id:req.body.driverId,
+                    isDeleted:false
                    }
             })
 
@@ -565,7 +572,8 @@ exports.bookingCancellation = async (req, res) => {
         }, {
             where: {
                 _id: req.params.id,
-                booking_status: "pending"
+                booking_status: "pending",
+                isDeleted:false
             }
         })
         if (bookingCancellation[0]) {
@@ -601,7 +609,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                         isDeleted: false,
                         where: {
                             _id: customer_id,
-            
+                            isDeleted:false
             
                         }
                     })
@@ -610,6 +618,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
             isDeleted: false,
             where: {
                 id: vehicle_id,
+                isDeleted:false
             }
         })
 
@@ -656,7 +665,8 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                 for(let i=0;i<pickup_additional_driver.length;i++){
                     const DriverDetails=await Driver.findOne({
                         where:{
-                            id:pickup_additional_driver[i].dataValues.driver_id
+                            id:pickup_additional_driver[i].dataValues.driver_id,
+                            isDeleted:false
                         },
                         attributes:["id","full_name"]
                     })
@@ -680,7 +690,8 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                 for(let i=0;i<dropoff_additional_driver.length;i++){
                     const DriverDetails=await Driver.findOne({
                         where:{
-                            id:dropoff_additional_driver[i].dataValues.driver_id
+                            id:dropoff_additional_driver[i].dataValues.driver_id,
+                            isDeleted:false
                         },
                         attributes:["id","full_name"]
                     })
@@ -697,7 +708,8 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
 
             const pickupDriverDetails= Driver.findOne({
                 where:{
-                    id:pickupDriverID
+                    id:pickupDriverID,
+                    isDeleted:false
                 },
                 attributes:["id","full_name"]
             })
@@ -705,6 +717,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
             const dropoffDriverDetails= Driver.findOne({
                 where:{
                     id:dropoffDriverID,
+                    isDeleted:false
                 },
                 attributes:["id","full_name"]
             })
@@ -792,7 +805,10 @@ exports.getAllBooking=async(req,res)=>{
         const allBookingID=await Booking.findAll({ 
             attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","pickup_location","dropoff_location","duration","total_rent","deposit_amount","per_day_rent"],
             limit:10,
-            offset:skip
+            offset:skip,
+            where:{
+                isDeleted:false
+            }
         })
     let i=0;
     let max_length=allBookingID.length

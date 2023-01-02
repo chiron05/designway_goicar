@@ -36,7 +36,8 @@ exports.DriverUpload=async(req,res,next)=>{
         await PickCustomer.update({video: result.secure_url,
         video_id:result.public_id},{
         where:{
-            booking_id:req.body.booking_id
+            booking_id:req.body.booking_id,
+            isDeleted:false
         }
     })
         
@@ -66,7 +67,8 @@ exports.DriverUpload=async(req,res,next)=>{
             video_id: result.public_id
         }, {
             where: {
-                booking_id: req.body.booking_id
+                booking_id: req.body.booking_id,
+                isDeleted:false
             }
         })
 

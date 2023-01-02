@@ -10,7 +10,11 @@ const { object } = require('joi/lib/index.js');
 
 
 exports.getVendors = async (req, res) => {
-    await Vendor.findAll().then(result => {
+    await Vendor.findAll({
+        where:{
+            isDeleted:false
+        }
+    }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
     }).catch(err => {
