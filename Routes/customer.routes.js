@@ -1,5 +1,5 @@
 const express=require('express');
-const { createCustomer, deleteCustomer, getCustomer, updateCustomer,getCustomerByPhone, getCustomerById } = require('../Controllers/customer.controller');
+const { createCustomer, deleteCustomer, getCustomer, updateCustomer,getCustomerByPhone, getCustomerById, getCustomerByName } = require('../Controllers/customer.controller');
 const customerRouter = express.Router();
 
 const cloudinary=require('../Utils/cloudinary')
@@ -11,7 +11,7 @@ customerRouter.put('/customer/:id',updateCustomer)
 customerRouter.delete('/customer/:id',deleteCustomer)
 customerRouter.get('/customer/phonenumber/:no',getCustomerByPhone)
 customerRouter.get('/customer/:id',getCustomerById)
-
+customerRouter.get('/customer/customername/name', getCustomerByName)
 
 
 

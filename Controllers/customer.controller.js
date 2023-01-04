@@ -11,7 +11,7 @@ exports.deleteCustomer = async (req, res, next) => {
         _id: req.params.id
     });
     if (error) {
-       return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
         return
     } else {
         const customerDeatails = await Customer.findOne(
@@ -19,7 +19,7 @@ exports.deleteCustomer = async (req, res, next) => {
                 attributes: ["isDeleted"],
                 where: {
                     _id: req.params.id,
-                    isDeleted:false
+                    isDeleted: false
                 }
             })
         if (customerDeatails) {
@@ -32,7 +32,7 @@ exports.deleteCustomer = async (req, res, next) => {
             }, {
                 where: {
                     _id: req.params.id,
-                    isDeleted:false
+                    isDeleted: false
                 }
             }).then(result => {
 
@@ -95,11 +95,11 @@ exports.updateCustomer = async (req, res, next) => {
 }
 
 exports.getCustomer = async (req, res) => {
-    let skip=10*(req.query.page);
+    let skip = 10 * (req.query.page);
     Customer.findAll({
         attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
-        limit:10,
-        offset:skip,
+        limit: 10,
+        offset: skip,
         where: {
             isDeleted: false
         }
@@ -193,18 +193,18 @@ exports.getCustomerByPhone = async (req, res) => {
         attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
         where: {
             phoneNumber: req.params.no,
-            isDeleted:false
+            isDeleted: false
         }
     }).then(result => {
 
-        if(result){
-            return   res.status(httpStatusCodes[200].code)
-            .json(formResponse(httpStatusCodes[200].code, result))
-        }else{
-            return  res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, "No Customer available"))
+        if (result) {
+            return res.status(httpStatusCodes[200].code)
+                .json(formResponse(httpStatusCodes[200].code, result))
+        } else {
+            return res.status(httpStatusCodes[404].code)
+                .json(formResponse(httpStatusCodes[404].code, "No Customer available"))
         }
-      
+
     }).catch(err => {
         res.status(httpStatusCodes[404].code)
             .json(formResponse(httpStatusCodes[404].code, err))
@@ -218,20 +218,44 @@ exports.getCustomerById = async (req, res) => {
         attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
         where: {
             _id: req.params.id,
-            isDeleted:false
+            isDeleted: false
         }
     }).then(result => {
-       
-        if(result){
-            return   res.status(httpStatusCodes[200].code)
-            .json(formResponse(httpStatusCodes[200].code, result))
-        }else{
-            return  res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, "No Customer available"))
+
+        if (result) {
+            return res.status(httpStatusCodes[200].code)
+                .json(formResponse(httpStatusCodes[200].code, result))
+        } else {
+            return res.status(httpStatusCodes[404].code)
+                .json(formResponse(httpStatusCodes[404].code, "No Customer available"))
         }
-      
+
     }).catch(err => {
-        res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, err))
+        res.status(httpStatusCodes[500].code)
+            .json(formResponse(httpStatusCodes[500].code, err))
+    })
+}
+
+
+exports.getCustomerByName = async (req, res) => {
+    console.log(req.body)
+    Customer.findAll({
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        where: {
+            firstName: req.body.firstName,
+        }
+    }).then(result => {
+
+        if (result) {
+            return res.status(httpStatusCodes[200].code)
+                .json(formResponse(httpStatusCodes[200].code, result))
+        } else {
+            return res.status(httpStatusCodes[404].code)
+                .json(formResponse(httpStatusCodes[404].code, "No Customer available"))
+        }
+
+    }).catch(err => {
+        res.status(httpStatusCodes[500].code)
+            .json(formResponse(httpStatusCodes[500].code, err))
     })
 }

@@ -7,7 +7,9 @@ const  {
     getRideDetails,
     additonalPickUpDriver,
     additonalDrpOffDriver,
-    getDriverById
+    getDriverById,
+    getDriverByName,
+    getDriverByPhone
     
 }=require('../Controllers/driver.controller.js')
 const driver_router=express.Router()
@@ -22,6 +24,8 @@ driver_router.delete('/:id',deleteDriver)
 driver_router.get('/ride/:id',getRideDetails)
 driver_router.get('/:id',getDriverById)
 
+driver_router.get('/phonenumber/:no', getDriverByPhone)
+driver_router.get('/drivername/name', getDriverByName)
 
 
 

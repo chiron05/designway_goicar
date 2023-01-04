@@ -216,3 +216,51 @@ exports.deleteVendors = async (req, res) => {
     }
 
 }
+
+
+
+exports.getVendorByPhone = async (req, res) => {
+
+    Vendor.findOne({
+        where: {
+            phone_number: req.params.no,
+        }
+    }).then(result => {
+
+        if (result) {
+            return res.status(httpStatusCodes[200].code)
+                .json(formResponse(httpStatusCodes[200].code, result))
+        } else {
+            return res.status(httpStatusCodes[404].code)
+                .json(formResponse(httpStatusCodes[404].code, "No Vendor available"))
+        }
+
+    }).catch(err => {
+        res.status(httpStatusCodes[500].code)
+            .json(formResponse(httpStatusCodes[500].code, err))
+    })
+}
+
+
+exports.getVendorByName = async (req, res) => {
+    console.log(req.body)
+    Vendor.findAll({
+        where: {
+            full_name: req.body.full_name,
+            isDeleted:false
+        }
+    }).then(result => {
+
+        if (result) {
+            return res.status(httpStatusCodes[200].code)
+                .json(formResponse(httpStatusCodes[200].code, result))
+        } else {
+            return res.status(httpStatusCodes[404].code)
+                .json(formResponse(httpStatusCodes[404].code, "No Vendor available"))
+        }
+
+    }).catch(err => {
+        res.status(httpStatusCodes[500].code)
+            .json(formResponse(httpStatusCodes[500].code, err))
+    })
+}
