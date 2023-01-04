@@ -6,7 +6,9 @@ const User=require('../Models/User')
 const jwt=require('jsonwebtoken');
 const {  authPhoneSchema,authSchema } = require('../Joi/auth.validation')
 const { createUserSchema } = require('../Joi/user.validation');
-const { Op, Sequelize } = require('sequelize')
+const { Op, Sequelize, DATE } = require('sequelize');
+const Otp = require('../Models/otp.model');
+const OTP = require('../Models/otp.model');
 const maxAge=3*24*60*60;
 const createToken=(id)=>{
     return jwt.sign({id},process.env.JWT_SECRET,{
@@ -131,7 +133,7 @@ exports.login=async(req,res)=>{
          }))   
      
          } catch (err) {
-          res.status(400).json({
+         return res.status(400).json({
                   message:"Login Unsuccessfull",
                   error:err.message
               })
@@ -139,6 +141,105 @@ exports.login=async(req,res)=>{
     }
 
  }
+
+exports.driversignin=async(req,res)=>{
+    
+    const new_otp=Math.floor(1000 + Math.random() * 9000).toString();
+    const user= await User.findOne({
+        where:{
+            phone_number:req.body.phone_number,
+            isDeleted:false
+        }
+    })
+    if(!user){
+        return res.status(400).json({
+            message:"User Doesn't Exist",
+        })
+    }
+
+    const exist_otp=await OTP.findOne({
+        where:{
+            phone_number: req.body.phone_number,
+        }
+    })
+
+    if(exist_otp){
+        await OTP.update({
+            otp:new_otp
+        },{
+            where:{
+                phone_number: req.body.phone_number
+            }
+        })
+
+        return res.status(200).json({
+           otp:new_otp
+        })
+    }
+    else{
+        const createOtp= await Otp.create({
+            phone_number:req.body.phone_number,
+            otp:new_otp
+        })
+        return res.status(200).json({
+           otp:new_otp
+        })
+      }
+
+}
+
+exports.verifyOtp=async(req,res)=>{
+    const verified_otp=await OTP.findOne({
+        where:{
+            phone_number:req.body.phone_number,
+            otp:req.body.otp
+        }
+    })
+
+    if(verified_otp){
+        try {
+            const user=await User.findOne({
+                where:{
+                    phone_number:req.body.phone_number,
+                    isDeleted:false
+                }
+            })
+            const token=createToken({userId:user.id,userRole:user.role});
+            try {
+             const addTokenToServer=await User.update({token:token},{where:{
+                 id:user.id,
+                 isDeleted:false
+             }})
+         } catch (error) {
+            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))   
+         }   
+         req.userId=user.id
+
+         const ServerToken=await User.findOne({
+            where:{
+                token:token,
+                isDeleted:false
+            }
+        })      
+         res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
+             token:ServerToken.dataValues.token
+         }))   
+     
+         } catch (err) {
+          res.status(400).json({
+                  message:"Login Unsuccessfull",
+                  error:err.message
+              })
+         }
+    }else{
+        return  res.status(400).json({
+           message:"Invalid OTP/ Number"
+        })
+    }
+}
+
+
+
 exports.signup=async(req,res)=>{
     const {error,value}=authSchema.validate(req.body);
     if(error){

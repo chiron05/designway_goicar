@@ -20,6 +20,7 @@ const shortUrlRoute = require('./shortUrl.routes')
 const paymentRouter = require('./payment.routes')
 const pay_router = require('./payu.routes')
 const user_routes = require('./user.routes')
+const addonbookingRoute = require('./addon_booking.routes')
 const router = express.Router();
 
 router.use('/driver', uplaod.single('license_img'), driver_router)
@@ -38,7 +39,7 @@ router.use(bookingRoute)
 router.use(customerRouter)
 router.use(authRouter)
 router.use(shortUrlRoute)
-
+router.use(addonbookingRoute)
 
 router.use(pay_router)
 router.use(paymentRouter)
