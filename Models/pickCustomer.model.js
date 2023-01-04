@@ -43,6 +43,11 @@ const PickCustomer=db.define('pickcustomer',{
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false
+    },
+    status:{
+        type:DataTypes.STRING,
+        defaultValue:'Upcoming',
+        allowNull:false
     }
     // TODO:- Fuel is pending
     , isDeleted:{

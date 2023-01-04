@@ -9,6 +9,9 @@ const { createDriverSchema, updateDriverSchema, getRideDetailsSchema, deleteDriv
 const pickupDriversBooking = require('../Models/pickupDriversBooking.model');
 const dropoffDriversBooking = require('../Models/dropoffDriversBooking.model');
 const User = require('../Models/User');
+const Booking = require('../Models/booking.model');
+const Vehicle = require('../Models/Vehicle');
+const Customer = require('../Models/customer.model');
 
 
 exports.getDrivers = async (req, res) => {
@@ -411,3 +414,137 @@ exports.getRideDetails=async(req,res)=>{
     }
 }
 
+
+exports.getDriverHistory=async(req,res)=>{
+
+    try {
+        
+    const driver = Driver.findOne({
+        where:{
+            id:req.params.id,
+            isDeleted:false
+        }
+    })
+
+    const pickUpDetails= PickCustomer.findAll({
+        where:{
+            driver:req.params.id,
+            isDeleted:false
+        }
+    })
+
+    const dropOffDetails= DropCustomer.findAll({
+        
+        where:{
+            driver:req.params.id,
+            isDeleted:false
+        }
+    })
+
+    const result= await Promise.all([driver,pickUpDetails,dropOffDetails])
+    const pickup=result[1];
+    const dropoff=result[2];
+
+    
+    let allPickUp=[]
+
+    
+
+    let allDropOff=[]
+
+   
+
+    for(let i=0;i<result[1].length;i++){
+      
+        const booking_details=await Booking.findOne({
+            attributes:["vehicle_id","_id","pickup_location","customer_id"],
+            where:{
+                _id:pickup[i].booking_id,
+                isDeleted:false
+            }
+        })
+       
+        const vehicle_Details=await Vehicle.findOne({
+            attributes:["type"],
+            where:{
+                id:booking_details.dataValues.vehicle_id,
+                isDeleted:false
+            }
+        })
+        
+    
+        const customerDetails=await Customer.findOne({
+            attributes:["firstName","lastName"],
+            where:{
+                _id:booking_details.customer_id,
+                isDeleted:false
+            }
+        })
+      
+    
+
+    allPickUp=[
+        {
+            "booking_id":booking_details._id,
+            "pickup/dropoff":"PickUp",
+            "location":booking_details.pickup_location,
+            "customer":`${customerDetails.firstName} ${customerDetails.lastName}`,
+            "vehicle-type":vehicle_Details.dataValues.type,
+            "status":pickup[i].status,
+    
+        },
+        ...allPickUp
+    ]
+    }
+
+
+    for(let i=0;i<result[2].length;i++){
+        const booking_details=await Booking.findOne({
+            attributes:["vehicle_id","_id","pickup_location","customer_id","dropoff_location"],
+            where:{
+                _id:dropoff[i].booking_id,
+                isDeleted:false
+            }
+        })
+
+        const vehicle_Details=await Vehicle.findOne({
+            attributes:["type"],
+            where:{
+                id:booking_details.vehicle_id,
+                isDeleted:false
+            }
+        })
+
+        const customerDetails=await Customer.findOne({
+            attributes:["firstName","lastName"],
+            where:{
+                _id:booking_details.customer_id,
+                isDeleted:false
+            }
+        })
+        
+            allDropOff=[
+                {
+                    "booking_id":booking_details._id,
+                    "pickup/dropoff":"DropOff",
+                    "location":booking_details.dropoff_location,
+                    "customer":`${customerDetails.firstName} ${customerDetails.lastName}`,
+                    "vehicle-type":vehicle_Details.type,
+                    "status":dropoff[i].status,     
+                },
+                ...allDropOff
+            ]
+    }
+   
+    let history={
+       allPickUp,
+       allDropOff
+    }
+
+   
+    return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,history))
+    } catch (error) {
+        return  res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code))
+    }
+
+}

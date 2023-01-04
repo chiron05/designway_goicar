@@ -135,5 +135,5 @@ exports.createAddonBookingById=async(req,res)=>{
         return res.status(httpStatusCodes[500].code)
         .json(formResponse(httpStatusCodes[500].code,error))
     }
-    
+
 }

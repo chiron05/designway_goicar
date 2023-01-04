@@ -40,6 +40,11 @@ const DropCustomer=db.define('dropcustomer',{
         allowNull: false,
         defaultValue: false
     },
+    status:{
+        type:DataTypes.STRING,
+        defaultValue:'Upcoming',
+        allowNull:false
+    },
     isDeleted:{
         type: DataTypes.BOOLEAN,
         defaultValue:false
