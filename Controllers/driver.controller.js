@@ -446,7 +446,7 @@ exports.getDriverByName = async (req, res) => {
         }
     }).then(result => {
 
-        if (result) {
+        if (result[0]) {
             return res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, result))
         } else {
