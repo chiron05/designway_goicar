@@ -137,3 +137,48 @@ exports.createAddonBookingById=async(req,res)=>{
     }
 
 }
+
+exports.deleteAddonBookingById=async(req,res)=>{
+    const result= await Promise.all([Booking.findOne({
+        where:{
+            _id:req.params.id,
+            isDeleted:false
+        }
+    }),addon_Booking.findOne({
+        where:{
+            booking_id:req.params.id,
+            isDeleted:false
+        }
+    })])
+
+    const booking=result[0]
+    const addonbooking=result[1]
+
+    if(!booking){
+        return res.status(httpStatusCodes[400].code)
+        .json(formResponse(httpStatusCodes[400].code,"Booking ID is Invalid"))
+    }
+
+    if(!addonbooking){
+        return res.status(httpStatusCodes[400].code)
+        .json(formResponse(httpStatusCodes[400].code,"no addOn Booking available for this Booking ID"))
+    }
+
+    const deleteAddOn=await addon_Booking.update({
+        isDeleted:true
+    },{
+        where:{
+            booking_id:req.params.id,
+            isDeleted:false
+        }
+    })
+
+    if(deleteAddOn[0]){
+        return res.status(httpStatusCodes[200].code)
+        .json(formResponse(httpStatusCodes[200].code,"Deleted Successfully"))
+    }else{
+        return res.status(httpStatusCodes[500].code)
+        .json(formResponse(httpStatusCodes[500].code))
+    }
+   
+}
