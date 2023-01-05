@@ -12,8 +12,4 @@ authRouter.post('/driver/login',driversignin);
 authRouter.post('/driver/login/verifyotp',verifyOtp);
 
 
-// authRouter.get('/logout',authenticatToken,logout_get);
-
-
-
 module.exports=authRouter
