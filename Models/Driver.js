@@ -24,7 +24,7 @@ const Driver=db.define('driver',{
     },
     alternate_number:{
         type: DataTypes.STRING,
-        allowNull:false,
+        allowNull:true,
         unique:true
     },
     email:{

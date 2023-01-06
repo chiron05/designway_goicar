@@ -267,7 +267,6 @@ exports.pickup = async (req, res) => {
     if (Object.keys(req.body).length === 0) {
         return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Body is empty"))
     }
-
     const { error, value } = pickUpDropOffSchema.validate(req.body);
 
     if (error) {
@@ -275,7 +274,6 @@ exports.pickup = async (req, res) => {
     }
     else {
         try {
-
             const DriverDetails = await Driver.findOne({
                 where: {
                     id: req.body.driverId,
@@ -326,8 +324,8 @@ exports.pickup = async (req, res) => {
                     booking_id: req.body.booking_id,
                     driver: req.body.driverId,
                     vehicle_condition: req.body.vehicle_condition,
-                    fuel_km:req.body.fuel_km,
-                    fuel_tank:req.body.fuel_tank
+                    // fuel_km:req.body.fuel_km,
+                    // fuel_tank:req.body.fuel_tank
                 }
             )
             
@@ -483,7 +481,7 @@ exports.dropoff = async (req, res, next) => {
 
             if (!DriverDetails || !customerDetails) {
                 res.status(httpStatusCodes[400].code)
-                    .json(formResponse(httpStatusCodes[400].code, "Please provide valid customer and driver ID"))
+                    .json(formResponse(httpStatusCodes[400].code, "Please provide valid Booking and driver ID"))
                 return;
             }
 
@@ -493,8 +491,8 @@ exports.dropoff = async (req, res, next) => {
                     // vehicle_id: req.body.vehicle_id,
                     driver: req.body.driverId,
                     vehicle_condition: req.body.vehicle_condition,
-                    fuel_km:req.body.fuel_km,
-                    fuel_tank:req.body.fuel_tank
+                    // fuel_km:req.body.fuel_km,
+                    // fuel_tank:req.body.fuel_tank
                 }
             )
 
@@ -641,7 +639,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                         }
                     })
 
-      const pick_drop_details=await Promise.all([pickup_details,dropoff_details])
+        const pick_drop_details=await Promise.all([pickup_details,dropoff_details])
         // const additionalDropOffDriverDetails =await db.query(`SELECT * FROM drivers WHERE drivers.id IN(SELECT dropoffdriversbookings.driver_id FROM bookings,dropoffdriversbookings WHERE bookings._id="${booking_id}");`)
        
 

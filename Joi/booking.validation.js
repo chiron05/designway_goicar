@@ -52,8 +52,8 @@ const pickUpDropOffSchema=Joi.object({
    booking_id:Joi.string().min(36),
    driverId:Joi.string().min(36),
    vehicle_condition:Joi.string(),
-   fuel_km:Joi.number().required(),
-   fuel_tank:Joi.number().required()
+   fuel_km:Joi.number(),
+   fuel_tank:Joi.number()
 })
 
 const bookingCancellationSchema=Joi.object({

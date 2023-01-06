@@ -114,22 +114,19 @@ exports.getCustomer = async (req, res) => {
 
 exports.createCustomer = async (req, res, next) => {
 
-  const new_customer=await Customer.findOne({
-    attributes:['_id'],
-    where:{
-        alternate_number:req.body.alternate_number,
-        isDeleted:false
-    }
-  })
+//   const new_customer=await Customer.findOne({
+//     attributes:['_id'],
+//     where:{
+//         alternate_number:req.body.alternate_number,
+//         isDeleted:false
+//     }
+//   })
 
-  if(!new_customer){
-    res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Alternate number already exist`))
-    return;
-  }
+//   if(!new_customer){
+//     res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Alternate number already exist`))
+//     return;
+//   }
 
-
-    if(req.body.alternate_number.length==0){
-        req.body.alternate_number="000000000000"
         if (Object.keys(req.body).length === 0) {
             return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Body is empty"))
         }
@@ -202,82 +199,7 @@ exports.createCustomer = async (req, res, next) => {
     
         }
     
-    }
-    else
-    {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Body is empty"))
-        }
-        if (req.body.phoneNumber == req.body.alternate_number) {
-            res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Alternate phonenumber must be different`))
-            return;
-        }
-        try {
-            const result = await cloudinary.uploader.upload(req.file.path);
-            const { error, value } = createCustomerSchema.validate({
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                email: req.body.email,
-                alternate_number: req.body.alternate_number,
-                validUntil: req.body.validUntil,
-                idNumber: req.body.idNumber,
-                phoneNumber: req.body.phoneNumber,
-                idProofURL: result.url
-            });
-            if (error) {
-                res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
-                return
-            }
     
-            const existingCustomer = await Customer.findOne({
-                attributes: ["email"],
-                where: {
-                    email: req.body.email,
-                    isDeleted: true
-                }
-            })
-            if (existingCustomer) {
-                const customerDelete = await Customer.destroy({
-                    where: {
-                        email: req.body.email
-                    }
-                })
-            }
-    
-            let data = Customer.build({
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                email: req.body.email,
-                alternate_number: req.body.alternate_number,
-                validUntil: req.body.validUntil,
-                idNumber: req.body.idNumber,
-                phoneNumber: req.body.phoneNumber,
-                idProofURL: result.url
-            })
-    
-            await data.save();
-    
-            if (data.errors) {
-                res.status(httpStatusCodes[400].code)
-                    .json(formResponse(httpStatusCodes[400].code, data.errors))
-            }
-            else {
-                res.status(httpStatusCodes[200].code)
-                    .json(formResponse(httpStatusCodes[200].code, {
-                        "message": "Customer created successfully",
-                        data
-                    }))
-            }
-    
-    
-        } catch (error) {
-            console.log(error)
-            res.status(httpStatusCodes[400].code)
-                .json(formResponse(httpStatusCodes[400].code, error))
-    
-        }
-    
-    }
 
    
 

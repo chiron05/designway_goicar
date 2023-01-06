@@ -33,7 +33,7 @@ const Customer = db.define('customer', {
     },
     alternate_number: {
         type: DataTypes.STRING,
-        allowNull: true
+        defaultValue:'000000000000'
     },
     idNumber: {
         type: DataTypes.INTEGER,

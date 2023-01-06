@@ -23,11 +23,13 @@ const PickCustomer=db.define('pickcustomer',{
     },
     fuel_km:{
         type: DataTypes.INTEGER,
-        allowNull:false
+        allowNull:false,
+        defaultValue:0
     },
     fuel_tank:{
         type: DataTypes.INTEGER,
-        allowNull:false
+        allowNull:false,
+        defaultValue:0
     },
     vehicle_condition: {
         type: DataTypes.STRING,
