@@ -280,7 +280,7 @@ exports.pickup = async (req, res) => {
                 where: {
                     id: req.body.driverId,
                     isDeleted: false,
-                    isAvailable:true
+                    // isAvailable:true
                 }
             })
             console.log(DriverDetails)
@@ -331,14 +331,14 @@ exports.pickup = async (req, res) => {
                 }
             )
             
-            const driverAvabilityUpdation=await Driver.update({
-                isAvailable:false
-            },{
-               where:{
-                id:req.body.driverId,
-                isDeleted:false
-               }
-            })
+            // const driverAvabilityUpdation=await Driver.update({
+            //     isAvailable:false
+            // },{
+            //    where:{
+            //     id:req.body.driverId,
+            //     isDeleted:false
+            //    }
+            // })
 
             let customerEmail=`
                 Hello ${customerDetails.firstName+" "+customerDetails.lastName}
@@ -451,7 +451,7 @@ exports.dropoff = async (req, res, next) => {
                 where: {
                     id: req.body.driverId,
                     isDeleted: false,
-                    isAvailable:true
+                    // isAvailable:true
                 }
             })
 
@@ -498,14 +498,14 @@ exports.dropoff = async (req, res, next) => {
                 }
             )
 
-            const driverAvabilityUpdation=await Driver.update({
-                isAvailable:false
-            },{
-                where:{
-                    id:req.body.driverId,
-                    isDeleted:false
-                   }
-            })
+            // const driverAvabilityUpdation=await Driver.update({
+            //     isAvailable:false
+            // },{
+            //     where:{
+            //         id:req.body.driverId,
+            //         isDeleted:false
+            //        }
+            // })
 
 
             let customerEmail=`

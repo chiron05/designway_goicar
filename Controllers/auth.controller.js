@@ -101,7 +101,6 @@ exports.driverlogin=async(req,res)=>{
 }
 
 exports.login=async(req,res)=>{
-
     const {error,value}=authSchema.validate(req.body);
     if(error){
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
