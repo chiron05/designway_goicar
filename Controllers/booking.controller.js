@@ -323,7 +323,7 @@ exports.pickup = async (req, res) => {
                 {
                     booking_id: req.body.booking_id,
                     driver: req.body.driverId,
-                    vehicle_condition: req.body.vehicle_condition,
+                    // vehicle_condition: req.body.vehicle_condition,
                     // fuel_km:req.body.fuel_km,
                     // fuel_tank:req.body.fuel_tank
                 }
