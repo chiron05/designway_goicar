@@ -641,9 +641,111 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
 
         const pick_drop_details=await Promise.all([pickup_details,dropoff_details])
         // const additionalDropOffDriverDetails =await db.query(`SELECT * FROM drivers WHERE drivers.id IN(SELECT dropoffdriversbookings.driver_id FROM bookings,dropoffdriversbookings WHERE bookings._id="${booking_id}");`)
-       
-
         // const additionalPickUpDriverDetails =await db.query(`SELECT * FROM drivers WHERE drivers.id IN(SELECT pickupdriversbookings.driver_id FROM bookings,pickupdriversbookings WHERE bookings._id="${booking_id}");`)
+
+        if(!pick_drop_details[0]){
+            if(pick_drop_details[1]){
+                const dropoffDriverID=pick_drop_details[1].dataValues.driver;
+                const dropoff_id=pick_drop_details[1].dataValues._id
+                const dropoff_additional_driver=await dropoffDriversBooking.findAll({
+                    where:{
+                        dropoff_id:dropoff_id
+                    },
+                    attributes:["driver_id"]
+                })
+    
+              
+                if(dropoff_additional_driver){
+                    for(let i=0;i<dropoff_additional_driver.length;i++){
+                        const DriverDetails=await Driver.findOne({
+                            where:{
+                                id:dropoff_additional_driver[i].dataValues.driver_id,
+                                isDeleted:false
+                            },
+                            attributes:["id","full_name"]
+                        })
+                        additional_dropoffDriver=[
+                            ...additional_dropoffDriver,
+                            DriverDetails
+                        ]
+    
+                    }
+                } 
+                const dropoffDriverDetails= Driver.findOne({
+                    where:{
+                        id:dropoffDriverID,
+                        isDeleted:false
+                    },
+                    attributes:["id","full_name"]
+                })
+    
+                const pick_drop_driver=await Promise.all([dropoffDriverDetails])
+                result={
+                    // "bookingDetails":bookingDetails,
+                    "customer_details":res[0],
+                    "vehicle_details":res[1],
+                    // "vendorDetails":vendorDetails,
+                    "dropoff_details":pick_drop_details[1],
+                    "dropoff_driver":pick_drop_driver[0],
+                    "additionalDropOffDriverDetails":additional_dropoffDriver,
+                }
+                return result;
+            }
+        }
+
+        if(!pick_drop_details[1]){
+            if(pick_drop_details[0]){
+               
+            const pickupDriverID=pick_drop_details[0].dataValues.driver;
+            const pickup_id=pick_drop_details[0].dataValues._id
+            const pickup_additional_driver=await pickupDriversBooking.findAll({
+                where:{
+                    pickup_id:pickup_id
+                },
+                attributes:["driver_id"]
+            })
+        
+            if(pickup_additional_driver){
+                for(let i=0;i<pickup_additional_driver.length;i++){
+                    const DriverDetails=await Driver.findOne({
+                        where:{
+                            id:pickup_additional_driver[i].dataValues.driver_id,
+                            isDeleted:false
+                        },
+                        attributes:["id","full_name"]
+                    })
+                    additional_pickupDriver=[
+                        ...additional_pickupDriver,
+                        DriverDetails
+                    ]
+
+                }
+            }
+
+            const pickupDriverDetails= Driver.findOne({
+                where:{
+                    id:pickupDriverID,
+                    isDeleted:false
+                },
+                attributes:["id","full_name"]
+            })
+
+
+            const pick_drop_driver=await Promise.all([pickupDriverDetails])
+            result={
+                // "bookingDetails":bookingDetails,
+                "customer_details":res[0],
+                "vehicle_details":res[1],
+                // "vendorDetails":vendorDetails,
+                "pickup_details":pick_drop_details[0],
+                "pickup_driver":pick_drop_driver[0],
+                "additionalPickUpDriverDetails":additional_pickupDriver
+            }
+            return result;
+            }
+        }
+
+
         if(pick_drop_details[0] && pick_drop_details[1]){
             const pickupDriverID=pick_drop_details[0].dataValues.driver;
             const dropoffDriverID=pick_drop_details[1].dataValues.driver;

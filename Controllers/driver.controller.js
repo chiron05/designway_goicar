@@ -526,7 +526,7 @@ exports.getDriverHistory=async(req,res)=>{
             }
         })
       
-    
+       
 
     allPickUp=[
         {
@@ -589,6 +589,7 @@ exports.getDriverHistory=async(req,res)=>{
    
     return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,history))
     } catch (error) {
+        console.log(error)
         return  res.status(httpStatusCodes[500].code).json(formResponse(httpStatusCodes[500].code))
     }
 
