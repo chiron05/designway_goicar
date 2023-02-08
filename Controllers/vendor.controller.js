@@ -2,21 +2,22 @@ const Vendor = require('../Models/Vendor.js')
 const Vehicle = require('../Models/Vehicle')
 const httpStatusCodes = require('../Constants/http-status-codes');
 const { formResponse } = require('../Utils/helper');
-const { Sequelize } =require("sequelize")
+const { Sequelize } = require("sequelize")
 const cloudinary = require('../Utils/cloudinary');
 
 const { createVendorSchema, updateVendorSchema, deleteVendor, getVendorByIdSchema } = require('../Joi/vendor.validation');
 const { object } = require('joi/lib/index.js');
 
+const { uploadToS3 } = require('../Utils/digitalOceanConfig')
 
 exports.getVendors = async (req, res) => {
-    let skip=10*(req.query.page);
+    let skip = 10 * (req.query.page);
     await Vendor.findAll({
-        where:{
-            isDeleted:false
+        where: {
+            isDeleted: false
         },
-        limit:10,
-        offset:skip
+        limit: 10,
+        offset: skip
     }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
@@ -27,87 +28,99 @@ exports.getVendors = async (req, res) => {
 }
 
 exports.createVendor = async (req, res) => {
-    // try {
-    //     const vendor = await Vendor.create(req.body)
-    //     res.status(200).send(vendor)
-    // }
-    // catch (err) {
-    //     res.status(500).send(err)
-    // }
-    if(Object.keys(req.body).length === 0){
-        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"Provide Body"))    
+   
+    console.log(req.file.path)
+    const id_proofLink = await uploadToS3(req.file, 'vendor_Id')
+    const ipObj = {
+
+        full_name: req.body.full_name,
+        address: req.body.address,
+        city: req.body.city,
+        state: req.body.state,
+        pincode: req.body.pincode,
+        email: req.body.email,
+        phone_number: req.body.phone_number,
+        alternate_number: req.body.alternate_number,
+        id_proof: id_proofLink.Location,
+        id_no: req.body.id_no
+
+    }
+
+    if (Object.keys(ipObj).length === 0) {
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "Provide Body"))
     }
     try {
-        const {error,value}=createVendorSchema.validate(req.body);
-        if(error){
-           return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,error))      
+        const { error, value } = createVendorSchema.validate(ipObj);
+        if (error) {
+            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
         }
 
-        const existingVendor=await Vendor.findOne({ 
-            where:Sequelize.and(
+        const existingVendor = await Vendor.findOne({
+            where: Sequelize.and(
                 {
-                    isDeleted:true
-                },Sequelize.or(                   
-                        {email:req.body.email},
-                        {phone_number:req.body.phone_number}
-                )                          
-        )
+                    isDeleted: true
+                }, Sequelize.or(
+                    { email: req.body.email },
+                    { phone_number: req.body.phone_number }
+                )
+            )
         })
-    
-       
-       if(existingVendor){
-            const updateExistingVendor=await Vendor.update({
-                isDeleted:false
-            },{
-                where:Sequelize.and(
+
+
+        if (existingVendor) {
+            const updateExistingVendor = await Vendor.update({
+                isDeleted: false
+            }, {
+                where: Sequelize.and(
                     {
-                        isDeleted:true
-                    },Sequelize.or(                   
-                            {email:req.body.email},
-                            {phone_number:req.body.phone_number}
+                        isDeleted: true
+                    }, Sequelize.or(
+                        { email: req.body.email },
+                        { phone_number: req.body.phone_number }
                     )
                 )
             })
 
-            return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
-                "message":"Vendor's Account Reactivated"
-            }))    
-       }
+            return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
+                "message": "Vendor's Account Reactivated"
+            }))
+        }
 
-        const vendor = await Vendor.create(req.body)
-        return  res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
-            "message":"Vendor created successfully",
+
+        const vendor = await Vendor.create(ipObj)
+        return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
+            "message": "Vendor created successfully",
             vendor
         }))
     }
     catch (error) {
         console.log(error)
-        return  res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
     }
 
 
 }
 
-exports.getVendorById=async(req,res)=>{
-    
+exports.getVendorById = async (req, res) => {
 
-    const { error, value } = getVendorByIdSchema.validate({id:req.params.id});
+
+    const { error, value } = getVendorByIdSchema.validate({ id: req.params.id });
     if (error) {
 
-       return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
-       
+        return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
+
     }
 
-    const vendorDetails=await Vendor.findOne({
-        where:{
-            id:req.params.id,
-            isDeleted:false
+    const vendorDetails = await Vendor.findOne({
+        where: {
+            id: req.params.id,
+            isDeleted: false
         }
     })
 
-    if(vendorDetails){
+    if (vendorDetails) {
         return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, vendorDetails))
-    }else{
+    } else {
         return res.status(httpStatusCodes[404].code).json(formResponse(httpStatusCodes[404].code, "Invalid Vendor ID"))
     }
 }
@@ -246,7 +259,7 @@ exports.getVendorByName = async (req, res) => {
     Vendor.findAll({
         where: {
             full_name: req.body.full_name,
-            isDeleted:false
+            isDeleted: false
         }
     }).then(result => {
 

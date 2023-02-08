@@ -7,6 +7,13 @@ const { formResponse } = require('../Utils/helper');
 const { updateVehicleSchema, createVehicleSchema, deleteVehicle } = require('../Joi/vehicle.validation');
 const { model } = require('mongoose');
 
+
+const { uploadToS3 } = require('../Utils/digitalOceanConfig')
+
+var fs = require('fs');
+const VehicleImages = require('../Models/vehicleImages.model');
+
+
 exports.getVehicleById = async (req, res) => {
     const vehicle_details = await Vehicle.findOne({
         include: [{ model: Vendor }],
@@ -30,43 +37,70 @@ exports.getVehicleById = async (req, res) => {
         })
 }
 exports.createVehicle = async (req, res) => {
+
+    const vehicleImages = [];
+
+    for (let i = 0; i < req.files.image.length; i++) {
+        const file = req.files.image[i];
+        const fieldname = 'vehicleImage';
+        const response = await uploadToS3(file, fieldname)
+        vehicleImages.push(response.Location);
+        console.log(response)
+    }
+    console.log(req.files.rc_Book[0])
+    const rc_BookLink = await uploadToS3(req.files.rc_Book[0], 'rc_Book')
+    const pollution_certificateLink = await uploadToS3(req.files.pollution_certificate[0], 'pollution_certificate')
+    const insuranceLink = await uploadToS3(req.files.insurance[0], 'insurance')
+    const RSALink = await uploadToS3(req.files.insurance[0], 'RSA')
+    console.log(rc_BookLink.Location, pollution_certificateLink.Location, insuranceLink.Location, RSALink.Location)
+
+    const ipObj = {
+        ...req.body,
+        image: vehicleImages[0],
+        rc_Book: rc_BookLink.Location,
+        pollution_certificate: pollution_certificateLink.Location,
+        insurance: insuranceLink.Location,
+        RSA: RSALink.Location
+    }
+    // console.log(ipObj)
     var data = req.body
     if (Object.keys(data).length === 0) {
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `Provide body`))
         return
     }
 
-    const vendorDetails=await Vendor.findOne({
-        where:{
-            id:req.body.owner
+    const vendorDetails = await Vendor.findOne({
+        where: {
+            id: req.body.owner
         }
     })
 
-    if(!vendorDetails){
-        return  res.status(httpStatusCodes[404].code)
-        .json(formResponse(httpStatusCodes[404].code, "Owner/Vendor ID is invalid"))
+    if (!vendorDetails) {
+        return res.status(httpStatusCodes[404].code)
+            .json(formResponse(httpStatusCodes[404].code, "Owner/Vendor ID is invalid"))
     }
 
     try {
+        // {
+        //     number: req.body.number,
+        //     make: req.body.make,
+        //     type: req.body.type,
+        //     transmission: req.body.transmission,
+        //     class: req.body.class,
+        //     registration_no: req.body.registration_no,
+        //     colour: req.body.colour,
+        //     // image: req.body.image,
+        //     owner: req.body.owner,
+        //     on_goicar_since: req.body.on_goicar_since,
+        //     rc_Book:rc_BookLink.Location,
+        //     pollution_certificate: pollution_certificateLink.Location,
+        //     insurance: insuranceLink.Location,
+        //     RSA: RSALink.Location,
+        //     rental_price: req.body.rental_price,
+        //     Hub: req.body.Hub
+        // }
 
-        const { error, value } = createVehicleSchema.validate({
-            number: req.body.number,
-            make: req.body.make,
-            type: req.body.type,
-            transmission: req.body.transmission,
-            class: req.body.class,
-            registration_no: req.body.registration_no,
-            colour: req.body.colour,
-            image: req.body.image,
-            owner: req.body.owner,
-            on_goicar_since: req.body.on_goicar_since,
-            rc_Book: req.body.rc_Book,
-            pollution_certificate: req.body.pollution_certificate,
-            insurance: req.body.insurance,
-            RSA: req.body.RSA,
-            rental_price:req.body.rental_price,
-            Hub:req.body.Hub
-        });
+        const { error, value } = createVehicleSchema.validate(ipObj);
         if (error) {
 
             res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
@@ -89,36 +123,28 @@ exports.createVehicle = async (req, res) => {
             })
         }
 
-        const vehicle = Vehicle.build({
-            number: req.body.number,
-            make: req.body.make,
-            type: req.body.type,
-            transmission: req.body.transmission,
-            class: req.body.class,
-            registration_no: req.body.registration_no,
-            colour: req.body.colour,
-            image: req.body.image,
-            owner: req.body.owner,
-            on_goicar_since: req.body.on_goicar_since,
-            rc_Book: req.body.rc_Book,
-            pollution_certificate: req.body.pollution_certificate,
-            insurance: req.body.insurance,
-            RSA: req.body.RSA,
-            rental_price:req.body.rental_price,
-            Hub:req.body.Hub
+        const vehicle = Vehicle.build(ipObj)
 
-        })
+        const vehicleDetails = await vehicle.save()
 
-        await vehicle.save()
+
 
         if (vehicle.errors) {
-          return  res.status(httpStatusCodes[404].code)
+            return res.status(httpStatusCodes[404].code)
                 .json(formResponse(httpStatusCodes[404].code, vehicle.errors))
         }
         else {
-          return  res.status(httpStatusCodes[200].code)
+            VehicleImages.bulkCreate(
+                vehicleImages.map(imageUrl => ({
+                    vehicle_id: vehicleDetails.id,
+                    image: imageUrl
+                }))
+
+            );
+
+            return res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, {
-                    "message":"Vehicle created successfully",
+                    "message": "Vehicle created successfully",
                     vehicle
                 }))
         }
@@ -132,14 +158,14 @@ exports.createVehicle = async (req, res) => {
 }
 
 exports.getAllVehicle = async (req, res) => {
-    let skip=10*(req.query.page);
+    let skip = 10 * (req.query.page);
     await Vehicle.findAll({
         include: [{ model: Vendor }],
-        where:{
-            isDeleted:false
+        where: {
+            isDeleted: false
         },
-        limit:10,
-        offset:skip
+        limit: 10,
+        offset: skip
     }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
@@ -242,4 +268,29 @@ exports.deleteVehicle = async (req, res) => {
 
     }
 
+}
+
+
+exports.getVehicleImages = async (req, res) => {
+    console.log(req.params)
+    const vehicle_Images = await VehicleImages.findAll({
+        where: {
+            vehicle_id: req.params.id,
+
+        }
+    })
+
+        .then(vehicle_Images => {
+            if (vehicle_Images != null) {
+                res.status(httpStatusCodes[200].code)
+                    .json(formResponse(httpStatusCodes[200].code, vehicle_Images))
+            }
+            else {
+                res.status(httpStatusCodes[404].code)
+                    .json(formResponse(httpStatusCodes[404].code, err))
+            }
+        }).catch(err => {
+            res.status(httpStatusCodes[500].code)
+                .json(formResponse(httpStatusCodes[500].code, err))
+        })
 }
