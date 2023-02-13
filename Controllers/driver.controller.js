@@ -162,7 +162,8 @@ exports.createDriver = async (req, res) => {
 
         console.log(result)
             const {error,value}=createDriverSchema.validate({
-                full_name: req.body.full_name,
+                first_name: req.body.first_name,
+                last_name: req.body.last_name,
                 phone_number: req.body.phone_number,
                 alternate_number: req.body.alternate_number,
                 email: req.body.email,
@@ -224,7 +225,8 @@ exports.createDriver = async (req, res) => {
 
 
             let driver = Driver.build({
-                full_name: req.body.full_name,
+                first_name: req.body.first_name,
+                last_name: req.body.last_name,
                 phone_number: req.body.phone_number,
                 alternate_number: req.body.alternate_number,
                 email: req.body.email,
@@ -245,7 +247,8 @@ exports.createDriver = async (req, res) => {
                 const userCreation=await User.create({
                     id:driver.id,
                     role:"driver",
-                    full_name:driver.full_name,
+                    first_name:driver.first_name,
+                    last_name:driver.last_name,
                     phone_number:driver.phone_number,
                     email:driver.email,
                     password:req.body.password,
@@ -441,7 +444,8 @@ exports.getDriverByName = async (req, res) => {
     console.log(req.body)
     Driver.findAll({
         where: {
-            full_name: req.body.full_name,
+            first_name: req.body.first_name,
+            last_name:req.body.last_name,
             isDeleted: false
         }
     }).then(result => {

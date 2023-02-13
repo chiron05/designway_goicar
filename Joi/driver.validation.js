@@ -2,7 +2,8 @@ const Joi = require("joi");
 const { joiPasswordExtendCore } = require('joi-password');
 
 const createDriverSchema = Joi.object({
-    full_name: Joi.string().min(4).max(50).required(),
+    first_name: Joi.string().min(3).max(50).required(),
+    last_name: Joi.string().min(2).max(50).required(),
     phone_number: Joi.string().length(12).pattern(/^[0-9]+$/).required(),
     alternate_number: Joi.string().length(12).pattern(/^[0-9]+$/).required(),
     email: Joi.string().email({
@@ -18,13 +19,14 @@ const createDriverSchema = Joi.object({
 
 
 const updateDriverSchema = Joi.object({
-    full_name: Joi.string().alphanum().min(6).max(50),
+    first_name: Joi.string().min(3).max(50),
+    last_name: Joi.string().min(2).max(50),
     phone_number: Joi.string().length(12).pattern(/^[0-9]+$/),
     alternate_number: Joi.string().length(12).pattern(/^[0-9]+$/),
     email: Joi.string().email({
         minDomainSegments: 2,
         tlds: { allow: ["com", "in"] }
-    }).required(),
+    }),
     license_no: Joi.string(),
     password:Joi.string().min(3)
 }

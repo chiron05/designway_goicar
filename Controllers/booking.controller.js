@@ -347,12 +347,12 @@ exports.pickup = async (req, res) => {
                 Pickup Date :  ${booking_details.pickup_date}
                 Pickup time :  ${booking_details.pickup_time}
 
-                Driver :  ${DriverDetails.full_name} 
+                Driver :  ${DriverDetails.first_name} 
                 Driver phone number :  ${DriverDetails.phone_number}
             `
 
             let driverEmail=`
-            Hello ${DriverDetails.full_name} 
+            Hello ${DriverDetails.first_name} 
 
             You having a pickup 
             location : ${booking_details.pickup_location}
@@ -364,11 +364,11 @@ exports.pickup = async (req, res) => {
             `
             const CustomerEmailError = await emailNotify(customerDetails.email, 'Pickup registration done successfully',customerEmail);
 
-            whatsappPickCustomerNotify(customerDetails.firstName+" "+customerDetails.lastName,req.body.booking_id,booking_details.pickup_location,booking_details.pickup_date,booking_details.pickup_time,DriverDetails.full_name,DriverDetails.phone_number,customerDetails.phoneNumber)
+            whatsappPickCustomerNotify(customerDetails.firstName+" "+customerDetails.lastName,req.body.booking_id,booking_details.pickup_location,booking_details.pickup_date,booking_details.pickup_time,DriverDetails.first_name,DriverDetails.phone_number,customerDetails.phoneNumber)
 
             const DriverEmailError = await emailNotify(DriverDetails.email,"", driverEmail);
 
-            whatsappDriverNotify(DriverDetails.full_name,booking_details.pickup_location,booking_details.pickup_date,booking_details.pickup_time,customerDetails.firstName+" "+customerDetails.lastName,customerDetails.phoneNumber,DriverDetails.phone_number)
+            whatsappDriverNotify(DriverDetails.first_name,booking_details.pickup_location,booking_details.pickup_date,booking_details.pickup_time,customerDetails.firstName+" "+customerDetails.lastName,customerDetails.phoneNumber,DriverDetails.phone_number)
 
 
             res.status(httpStatusCodes[200].code)
@@ -515,12 +515,12 @@ exports.dropoff = async (req, res, next) => {
                 DropOff Date :  ${booking_details.dropoff_date}
                 DropOff time :  ${booking_details.dropoff_time}
 
-                Driver :  ${DriverDetails.full_name} 
+                Driver :  ${DriverDetails.first_name} 
                 Driver phone number :  ${DriverDetails.phone_number}
             `
 
             let driverEmail=`
-            Hello ${DriverDetails.full_name} 
+            Hello ${DriverDetails.first_name} 
 
             You having a Drop Off 
             location : ${booking_details.dropoff_location}
@@ -532,11 +532,11 @@ exports.dropoff = async (req, res, next) => {
             `
             const CustomerEmailError = await emailNotify(customerDetails.email, 'Drop Off registration done successfully',customerEmail);
 
-            whatsappDropCustomerNotify(customerDetails.firstName+" "+customerDetails.lastName,req.body.booking_id,booking_details.dropoff_location,booking_details.dropoff_date,booking_details.dropoff_time,DriverDetails.full_name,DriverDetails.phone_number,customerDetails.phoneNumber)
+            whatsappDropCustomerNotify(customerDetails.firstName+" "+customerDetails.lastName,req.body.booking_id,booking_details.dropoff_location,booking_details.dropoff_date,booking_details.dropoff_time,DriverDetails.first_name,DriverDetails.phone_number,customerDetails.phoneNumber)
 
             const DriverEmailError = await emailNotify(DriverDetails.email,"", driverEmail);
             
-            whatsappDriverNotify(DriverDetails.full_name,booking_details.dropoff_location,booking_details.dropoff_date,booking_details.dropoff_time,customerDetails.firstName+" "+customerDetails.lastName,customerDetails.phoneNumber,DriverDetails.phone_number)
+            whatsappDriverNotify(DriverDetails.first_name,booking_details.dropoff_location,booking_details.dropoff_date,booking_details.dropoff_time,customerDetails.firstName+" "+customerDetails.lastName,customerDetails.phoneNumber,DriverDetails.phone_number)
 
             return res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, {
@@ -662,7 +662,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                                 id:dropoff_additional_driver[i].dataValues.driver_id,
                                 isDeleted:false
                             },
-                            attributes:["id","full_name"]
+                            attributes:["id","first_name"]
                         })
                         additional_dropoffDriver=[
                             ...additional_dropoffDriver,
@@ -676,7 +676,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                         id:dropoffDriverID,
                         isDeleted:false
                     },
-                    attributes:["id","full_name"]
+                    attributes:["id","first_name"]
                 })
     
                 const pick_drop_driver=await Promise.all([dropoffDriverDetails])
@@ -712,7 +712,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                             id:pickup_additional_driver[i].dataValues.driver_id,
                             isDeleted:false
                         },
-                        attributes:["id","full_name"]
+                        attributes:["id","first_name"]
                     })
                     additional_pickupDriver=[
                         ...additional_pickupDriver,
@@ -727,7 +727,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                     id:pickupDriverID,
                     isDeleted:false
                 },
-                attributes:["id","full_name"]
+                attributes:["id","first_name"]
             })
 
 
@@ -769,7 +769,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                             id:pickup_additional_driver[i].dataValues.driver_id,
                             isDeleted:false
                         },
-                        attributes:["id","full_name"]
+                        attributes:["id","first_name"]
                     })
                     additional_pickupDriver=[
                         ...additional_pickupDriver,
@@ -794,7 +794,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                             id:dropoff_additional_driver[i].dataValues.driver_id,
                             isDeleted:false
                         },
-                        attributes:["id","full_name"]
+                        attributes:["id","first_name"]
                     })
                     additional_dropoffDriver=[
                         ...additional_dropoffDriver,
@@ -812,7 +812,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                     id:pickupDriverID,
                     isDeleted:false
                 },
-                attributes:["id","full_name"]
+                attributes:["id","first_name"]
             })
 
             const dropoffDriverDetails= Driver.findOne({
@@ -820,7 +820,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
                     id:dropoffDriverID,
                     isDeleted:false
                 },
-                attributes:["id","full_name"]
+                attributes:["id","first_name"]
             })
 
             const pick_drop_driver=await Promise.all([pickupDriverDetails,dropoffDriverDetails])

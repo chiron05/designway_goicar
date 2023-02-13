@@ -12,7 +12,11 @@ const Driver=db.define('driver',{
         allowNull: false,
         unique:true
     },
-    full_name: {
+    first_name: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    last_name: {
         type: DataTypes.STRING,
         allowNull: false
     },

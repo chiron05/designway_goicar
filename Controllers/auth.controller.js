@@ -280,7 +280,8 @@ exports.signup=async(req,res)=>{
 
                const user = await User.create({
                 role:req.body.role,
-                full_name:req.body.full_name,
+                first_name:req.body.first_name,
+                last_name:req.body.last_name,
                 email:req.body.email,
                 phone_number:req.body.phone_number,
                 password:req.body.password,

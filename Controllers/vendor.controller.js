@@ -29,20 +29,31 @@ exports.getVendors = async (req, res) => {
 
 exports.createVendor = async (req, res) => {
    
-    console.log(req.file.path)
+    if(req.body.ACCOUNT_NO){
+        if(req.body.ACCOUNT_NO!=req.body.RE_ENTER_ACCOUNT_NO){
+            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code,"RE-ENTER account number is different"))
+        }
+    }
     const id_proofLink = await uploadToS3(req.file, 'vendor_Id')
     const ipObj = {
-
-        full_name: req.body.full_name,
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
         address: req.body.address,
-        city: req.body.city,
-        state: req.body.state,
+        city_state: req.body.city_state,
         pincode: req.body.pincode,
         email: req.body.email,
         phone_number: req.body.phone_number,
         alternate_number: req.body.alternate_number,
         id_proof: id_proofLink.Location,
-        id_no: req.body.id_no
+        id_no: req.body.id_no,
+        address_line1: req.body.address_line1,
+        billing_city_state: req.body.billing_city_state,
+        billing_pincode: req.body.billing_pincode,
+        beneficiary_name: req.body.beneficiary_name,
+        bank_name: req.body.bank_name,
+        NEFT_ISC_CODE: req.body.NEFT_ISC_CODE,
+        ACCOUNT_NO: req.body.ACCOUNT_NO,
+        ACCOUNT_TYPE: req.body.ACCOUNT_TYPE
 
     }
 
@@ -86,6 +97,7 @@ exports.createVendor = async (req, res) => {
             }))
         }
 
+      
 
         const vendor = await Vendor.create(ipObj)
         return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
@@ -258,7 +270,8 @@ exports.getVendorByName = async (req, res) => {
     console.log(req.body)
     Vendor.findAll({
         where: {
-            full_name: req.body.full_name,
+            first_name: req.body.first_name,
+            last_name:req.body.last_name,
             isDeleted: false
         }
     }).then(result => {

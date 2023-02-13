@@ -9,7 +9,11 @@ const Vendor = db.define('vendor', {
         primaryKey: true,
         allowNull: false,
     },
-    full_name: {
+    first_name: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    last_name: {
         type: DataTypes.STRING,
         allowNull: false
     },
@@ -17,17 +21,13 @@ const Vendor = db.define('vendor', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    city: {
+    city_state: {
         type: DataTypes.STRING,
-        allowNull: false
-    },
-    state: {
-        type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     pincode: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: true
     },
     email: {
         type: DataTypes.STRING,
@@ -46,12 +46,44 @@ const Vendor = db.define('vendor', {
     },
     id_proof: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
 
     },
     id_no: {
         type: DataTypes.STRING, //can be alphanumberic
-        allowNull: false,
+        allowNull: false
+    },
+    address_line1:{
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    billing_city_state:{
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    billing_pincode:{
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    beneficiary_name:{
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    bank_name:{
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    NEFT_ISC_CODE:{
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    ACCOUNT_NO:{
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    ACCOUNT_TYPE:{
+        type: DataTypes.STRING,
+        allowNull: true
     },
     isDeleted: {
         type: DataTypes.BOOLEAN,
