@@ -874,6 +874,10 @@ exports.getBooking = async (req, res)=>{
         attributes:["_id","customer_id","vehicle_id","pickup_date","pickup_time","dropoff_date","dropoff_time","pickup_location","dropoff_location","duration","total_rent","deposit_amount","per_day_rent"],
     })
 
+    if(!bookingDetail){
+        return res.status(httpStatusCodes[404].code)
+        .json(formResponse(httpStatusCodes[404].code,`No Booking is available for bookingID ${req.params.id}`))
+    }
     
     let bookingDetails=bookingDetail.dataValues
     
