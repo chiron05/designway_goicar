@@ -24,12 +24,60 @@ exports.getDrivers = async (req, res) => {
         limit: 10,
         offset: skip
     }).then(result => {
-        res.status(httpStatusCodes[200].code)
+       return res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
     }).catch(err => {
-        res.status(httpStatusCodes[404].code)
+      return  res.status(httpStatusCodes[404].code)
             .json(formResponse(httpStatusCodes[404].code, err))
     })
+}
+
+exports.removeAdditionalPickupDriver=async(req,res)=>{
+    const removePickupDriver=await pickupDriversBooking.destroy({
+        where:{
+            pickup_id:req.body.pickup_id,
+            driver_id:req.body.driver_id
+        }
+    })
+
+    if(removePickupDriver){
+        const updateDriver=await Driver.update({
+            isAvailable:true
+        },{
+            where:{
+                id:req.body.driver_id
+            }
+        })
+        return res.status(httpStatusCodes[200].code)
+        .json(formResponse(httpStatusCodes[200].code, "Additional driver removed"))
+    }else{
+        return res.status(httpStatusCodes[400].code)
+        .json(formResponse(httpStatusCodes[400].code, "Please provide valid pickup and driver id"))
+    }
+}
+
+exports.removeAdditionalDropOffDriver=async(req,res)=>{
+    const removedropoffDriver=await dropoffDriversBooking.destroy({
+        where:{
+            dropoff_id:req.body.dropoff_id,
+            driver_id:req.body.driver_id
+        }
+    })
+
+    if(removedropoffDriver){
+        const updateDriver=await Driver.update({
+            isAvailable:true
+        },{
+            where:{
+                id:req.body.driver_id
+            }
+        })
+        return res.status(httpStatusCodes[200].code)
+        .json(formResponse(httpStatusCodes[200].code, "Additional driver removed"))
+    }else{
+        return res.status(httpStatusCodes[400].code)
+        .json(formResponse(httpStatusCodes[400].code, "Please provide valid dropoff and driver id"))
+    }
 }
 
 exports.additonalPickUpDriver = async (req, res) => {
@@ -140,13 +188,13 @@ exports.createDriver = async (req, res) => {
 
     const result = await Promise.all([userEmail, userPhoneNumber])
     if (result[0]) {
-        return res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, "Email ID Already in Used"))
+        return res.status(httpStatusCodes[400].code)
+            .json(formResponse(httpStatusCodes[400].code, "Email ID Already in Used"))
     }
 
     if (result[0]) {
-        return res.status(httpStatusCodes[404].code)
-            .json(formResponse(httpStatusCodes[404].code, "Phone number Already in Used"))
+        return res.status(httpStatusCodes[400].code)
+            .json(formResponse(httpStatusCodes[400].code, "Phone number Already in Used"))
     }
 
 
@@ -381,36 +429,71 @@ exports.getRideDetails = async (req, res) => {
     }
 
     const pickup = req.body.pickup
-    console.log(pickup)
     if (pickup == 'true') {
-        let booking = await PickCustomer.findAll({
+        let booking = await PickCustomer.findOne({
             where: {
                 driver: req.params.id,
                 isDeleted: false
             }
         })
-        if (booking.length == 0) {
+        if (!booking) {
             return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
         }
+        const bookingDetails=await Booking.findOne({
+            where:{
+                _id:booking.booking_id
+            }
+        })
+
+        if(!bookingDetails){
+            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
+        }
+       
         else {
             return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
-                "pickup": booking
+                "pickup": {
+                    "pickup_id":booking._id,
+                    "fuel_km":booking.fuel_km,
+                    "fuel_tank":booking.fuel_tank,
+                    "video":booking.video,
+                    "video_id":booking.video_id,
+                    "verified":booking.verified,
+                    "status":booking.status,
+                    "Booking_Details":bookingDetails
+                }
             }))
         }
     }
     else {
-        let booking = await DropCustomer.findAll({
+        let booking = await DropCustomer.findOne({
             where: {
                 driver: req.params.id,
                 isDeleted: false
             }
         })
-        if (booking.length == 0) {
+        if (!booking) {
+            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
+        }
+        const bookingDetails=await Booking.findOne({
+            where:{
+                _id:booking.booking_id
+            }
+        })
+        if(!bookingDetails){
             return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
         }
         else {
             return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
-                "dropoff": booking
+                "dropoff": {
+                    "dropoff_id":booking._id,
+                    "fuel_km":booking.fuel_km,
+                    "fuel_tank":booking.fuel_tank,
+                    "video":booking.video,
+                    "video_id":booking.video_id,
+                    "verified":booking.verified,
+                    "status":booking.status,
+                    "Booking_Details":bookingDetails
+                }
             }))
 
         }
