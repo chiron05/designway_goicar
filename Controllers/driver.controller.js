@@ -430,7 +430,7 @@ exports.getRideDetails = async (req, res) => {
 
     const pickup = req.body.pickup
     if (pickup == 'true') {
-        let booking = await PickCustomer.findOne({
+        let booking = await PickCustomer.findAll({
             where: {
                 driver: req.params.id,
                 isDeleted: false
@@ -439,33 +439,24 @@ exports.getRideDetails = async (req, res) => {
         if (!booking) {
             return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
         }
-        const bookingDetails=await Booking.findOne({
-            where:{
-                _id:booking.booking_id
-            }
-        })
+        // const bookingDetails=await Booking.findOne({
+        //     where:{
+        //         _id:booking.booking_id
+        //     }
+        // })
 
-        if(!bookingDetails){
-            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
-        }
+        // if(!bookingDetails){
+        //     return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
+        // }
        
         else {
             return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
-                "pickup": {
-                    "pickup_id":booking._id,
-                    "fuel_km":booking.fuel_km,
-                    "fuel_tank":booking.fuel_tank,
-                    "video":booking.video,
-                    "video_id":booking.video_id,
-                    "verified":booking.verified,
-                    "status":booking.status,
-                    "Booking_Details":bookingDetails
-                }
+                "pickup":booking
             }))
         }
     }
     else {
-        let booking = await DropCustomer.findOne({
+        let booking = await DropCustomer.findAll({
             where: {
                 driver: req.params.id,
                 isDeleted: false
@@ -474,26 +465,17 @@ exports.getRideDetails = async (req, res) => {
         if (!booking) {
             return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
         }
-        const bookingDetails=await Booking.findOne({
-            where:{
-                _id:booking.booking_id
-            }
-        })
-        if(!bookingDetails){
-            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
-        }
+        // const bookingDetails=await Booking.findOne({
+        //     where:{
+        //         _id:booking.booking_id
+        //     }
+        // })
+        // if(!bookingDetails){
+        //     return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
+        // }
         else {
             return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
-                "dropoff": {
-                    "dropoff_id":booking._id,
-                    "fuel_km":booking.fuel_km,
-                    "fuel_tank":booking.fuel_tank,
-                    "video":booking.video,
-                    "video_id":booking.video_id,
-                    "verified":booking.verified,
-                    "status":booking.status,
-                    "Booking_Details":bookingDetails
-                }
+                "dropoff": booking
             }))
 
         }
