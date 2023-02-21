@@ -21,7 +21,9 @@ const updateBookingSchema=Joi.object({
    bookingid:Joi.string().min(36),
    total_rent:Joi.number(),
    deposit_amount:Joi.number(),
-   per_day_rent:Joi.number()
+   per_day_rent:Joi.number(),
+   pick_up_address:Joi.string(),
+   drop_off_address:Joi.string()
 });
 
 const createBookingSchema=Joi.object({
@@ -36,7 +38,9 @@ const createBookingSchema=Joi.object({
    duration:Joi.string(),
    total_rent:Joi.number(),
    deposit_amount:Joi.number(),
-   per_day_rent:Joi.number()
+   per_day_rent:Joi.number(),
+   pick_up_address:Joi.string(),
+   drop_off_address:Joi.string()
 });
 
 const updatePickDropSchema=Joi.object({

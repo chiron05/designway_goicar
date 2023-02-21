@@ -1,4 +1,5 @@
 const express =require('express')
+const tokenAuthentication = require('../Auth/tokenVerification.js')
 const  {
     getDrivers,
     createDriver,
@@ -12,7 +13,9 @@ const  {
     getDriverByPhone,
     getDriverHistory,
     removeAdditionalPickupDriver,
-    removeAdditionalDropOffDriver
+    removeAdditionalDropOffDriver,
+    getUpcomingRideDetails,
+    getcompletedRideDetails
     
 }=require('../Controllers/driver.controller.js')
 const driver_router=express.Router()
@@ -21,6 +24,8 @@ const driver_router=express.Router()
 
 driver_router.get('/',getDrivers)
 driver_router.get('/ride/:id',getRideDetails)
+driver_router.get('/ride/upcoming/:id',getUpcomingRideDetails)
+driver_router.get('/ride/completed/:id',getcompletedRideDetails)
 driver_router.get('/:id',getDriverById)
 driver_router.get('/history/:id',getDriverHistory)
 driver_router.get('/phonenumber/:no', getDriverByPhone)

@@ -221,6 +221,7 @@ exports.verifyOtp=async(req,res)=>{
             }
         })      
          res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
+             userID:user.id,
              token:ServerToken.dataValues.token
          }))   
      

@@ -137,7 +137,9 @@ exports.createVehicleBooking = async (req, res) => {
             duration: req.body.duration,
             total_rent:req.body.total_rent,
             deposit_amount:req.body.deposit_amount,
-            per_day_rent:req.body.per_day_rent
+            per_day_rent:req.body.per_day_rent,
+            pick_up_address:req.body.pick_up_address,
+            drop_off_address:req.body.drop_off_address
         }
     );
     if (error) {
@@ -169,7 +171,9 @@ exports.createVehicleBooking = async (req, res) => {
                 duration: req.body.duration,
                 total_rent:req.body.total_rent,
                 deposit_amount:req.body.deposit_amount,
-                per_day_rent:req.body.per_day_rent
+                per_day_rent:req.body.per_day_rent,
+                pick_up_address:req.body.pick_up_address,
+                drop_off_address:req.body.drop_off_address
             })
             await data.save();
 

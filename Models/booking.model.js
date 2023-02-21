@@ -33,6 +33,12 @@ const Booking = db.define('booking', {
         allowNull: false,
         required: true
     },
+    pick_up_address:{
+        type: DataTypes.STRING,
+    },
+    drop_off_address:{
+        type: DataTypes.STRING,
+    },
     dropoff_date: {
         type: DataTypes.DATE,
         allowNull: false,

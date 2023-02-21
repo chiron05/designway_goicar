@@ -419,67 +419,148 @@ exports.getDriverById = async (req, res) => {
 
 
 exports.getRideDetails = async (req, res) => {
-    const { error, value } = getRideDetailsSchema.validate({
-        id: req.params.id,
-        pickup: req.body.pickup
-    });
-    if (error) {
-        res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
-        return
-    }
+ const driver_ID=req.params.id;
 
-    const pickup = req.body.pickup
-    if (pickup == 'true') {
-        let booking = await PickCustomer.findAll({
-            where: {
-                driver: req.params.id,
-                isDeleted: false
-            }
+ const pickCustomerDetails= PickCustomer.findAll({
+    where:{
+        driver:driver_ID,
+        isDeleted:false
+    },
+    attributes:["_id","booking_id"]
+ })
+ const dropCustomerDetails= DropCustomer.findAll({
+    where:{
+        driver:driver_ID,
+        isDeleted:false
+    },
+    attributes:["_id","booking_id"]
+ })
+ const result=await Promise.all([pickCustomerDetails,dropCustomerDetails])
+ const pickCustomerResult=result[0]
+ const dropCustomerResult=result[1]
+
+ let driverRideDetails=[]
+
+ if(pickCustomerResult.length!=0){
+    for(let i=0;i<pickCustomerResult.length;i++){
+     let res=await  Booking.findOne({
+            where:{
+                isDeleted:false,
+                _id:pickCustomerResult[i].booking_id
+            },
+            attributes:["_id","customer_id","pickup_date","pickup_time","pickup_location","pick_up_address","pickup_date"]
+        }).then((booking_details)=>{
+          return Customer.findOne({
+                where:{
+                    isDeleted:false,
+                    _id:booking_details.customer_id
+                },
+                attributes:["_id","firstName","lastName"]
+            }).then((customer_Details)=>{
+                driverRideDetails.push({
+                    "BookingId":booking_details._id,
+                    "PickUpId":pickCustomerResult[i]._id,
+                    "Ride":"Pick-Up",
+                    "Time":booking_details.pickup_time,
+                    "Date":booking_details.pickup_date,
+                    "Location":booking_details.pickup_location,
+                    "CustomerDetails":{
+                        "CustomerId":customer_Details._id,
+                        "FirstName":customer_Details.firstName,
+                        "LastName":customer_Details.lastName,
+                        "Pickup_address":booking_details.pick_up_address
+                    }
+                })
+                return driverRideDetails
+                // console.log(driverRideDetails)
+            }).catch(err=>{
+                return res.status(httpStatusCodes[500].code)
+                .json(formResponse(httpStatusCodes[500].code, err))
+            })
+        }).catch(err=>{
+           return res.status(httpStatusCodes[500].code)
+            .json(formResponse(httpStatusCodes[500].code, err))
         })
-        if (!booking) {
-            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
-        }
-        // const bookingDetails=await Booking.findOne({
-        //     where:{
-        //         _id:booking.booking_id
-        //     }
-        // })
-
-        // if(!bookingDetails){
-        //     return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
-        // }
-       
-        else {
-            return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
-                "pickup":booking
-            }))
-        }
+      
+        
     }
-    else {
-        let booking = await DropCustomer.findAll({
-            where: {
-                driver: req.params.id,
-                isDeleted: false
-            }
-        })
-        if (!booking) {
-            return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
-        }
-        // const bookingDetails=await Booking.findOne({
-        //     where:{
-        //         _id:booking.booking_id
-        //     }
-        // })
-        // if(!bookingDetails){
-        //     return res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, "No booking available"))
-        // }
-        else {
-            return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
-                "dropoff": booking
-            }))
 
-        }
+ }
+
+ if(dropCustomerResult.length!=0){
+    for(let i=0;i<dropCustomerResult.length;i++){
+        let res=await  Booking.findOne({
+               where:{
+                   isDeleted:false,
+                   _id:dropCustomerResult[i].booking_id
+               },
+               attributes:["_id","customer_id","dropoff_date","dropoff_time","dropoff_location","drop_off_address","dropoff_date"]
+           }).then((booking_details)=>{
+             return Customer.findOne({
+                   where:{
+                       isDeleted:false,
+                       _id:booking_details.customer_id
+                   },
+                   attributes:["_id","firstName","lastName"]
+               }).then((customer_Details)=>{
+                   driverRideDetails.push({
+                       "BookingId":booking_details._id,
+                       "DropOffId":dropCustomerResult[i]._id,
+                       "Ride":"Drop-Off",
+                       "Time":booking_details.dropoff_time,
+                       "Date":booking_details.dropoff_date,
+                       "Location":booking_details.dropoff_location,
+                       "CustomerDetails":{
+                           "CustomerId":customer_Details._id,
+                           "FirstName":customer_Details.firstName,
+                           "LastName":customer_Details.lastName,
+                           "Dropoff_address":booking_details.drop_off_address
+                       }
+                   })
+                   return driverRideDetails
+                   // console.log(driverRideDetails)
+               }).catch(err=>{
+                   return res.status(httpStatusCodes[500].code)
+                   .json(formResponse(httpStatusCodes[500].code, err))
+               })
+           }).catch(err=>{
+              return res.status(httpStatusCodes[500].code)
+               .json(formResponse(httpStatusCodes[500].code, err))
+           })  
+       }
+ }
+
+ const sortableData= driverRideDetails.map(data=>{
+    const monthNumber={
+        "Jan":"1",
+        "Feb":"2",
+        "Mar":"3",
+        "Apr":"4",
+        "May":"5",
+        "Jun":"6",
+        "Jul":"7",
+        "Aug":"8",
+        "Sep":"9",
+        "Oct":"10",
+        "Nov":"11",
+        "Dec":"12"
     }
+    const [hours,minutes,seconds]=data.Time.split(':');
+    console.log(data.Date)
+    console.log(data.Date.toString())
+    const [day,month,date,year]=data.Date.toString().split(' ')
+    console.log(monthNumber[month]+" --"+date+"-- "+year+"--"+hours+"-"+minutes,"--"+seconds)
+    
+    return {
+        ...data,
+        new_Date:new Date(year.toString(),monthNumber[month].toString(),date.toString(),hours.toString(),minutes.toString(),seconds.toString())
+    }
+ })
+ sortableData.sort((a,b)=>a.new_Date-b.new_Date)
+
+return res.status(httpStatusCodes[200].code)
+.json(formResponse(httpStatusCodes[200].code, sortableData))
+
 }
 
 exports.getDriverByPhone = async (req, res) => {
@@ -527,6 +608,304 @@ exports.getDriverByName = async (req, res) => {
         res.status(httpStatusCodes[500].code)
             .json(formResponse(httpStatusCodes[500].code, err))
     })
+}
+
+exports.getUpcomingRideDetails=async(req,res)=>{
+    const driver_ID=req.params.id;
+
+    const pickCustomerDetails= PickCustomer.findAll({
+       where:{
+           driver:driver_ID,
+           isDeleted:false,
+           status:"Upcoming"
+       },
+       attributes:["_id","booking_id"]
+    })
+    const dropCustomerDetails= DropCustomer.findAll({
+       where:{
+           driver:driver_ID,
+           isDeleted:false,
+           status:"Upcoming"
+       },
+       attributes:["_id","booking_id"]
+    })
+    const result=await Promise.all([pickCustomerDetails,dropCustomerDetails])
+    const pickCustomerResult=result[0]
+    const dropCustomerResult=result[1]
+   
+    let driverRideDetails=[]
+   
+    if(pickCustomerResult.length!=0){
+       for(let i=0;i<pickCustomerResult.length;i++){
+        let res=await  Booking.findOne({
+               where:{
+                   isDeleted:false,
+                   _id:pickCustomerResult[i].booking_id
+               },
+               attributes:["_id","customer_id","pickup_date","pickup_time","pickup_location","pick_up_address","pickup_date"]
+           }).then((booking_details)=>{
+             return Customer.findOne({
+                   where:{
+                       isDeleted:false,
+                       _id:booking_details.customer_id
+                   },
+                   attributes:["_id","firstName","lastName"]
+               }).then((customer_Details)=>{
+                   driverRideDetails.push({
+                       "BookingId":booking_details._id,
+                       "PickUpId":pickCustomerResult[i]._id,
+                       "Ride":"Pick-Up",
+                       "Time":booking_details.pickup_time,
+                       "Date":booking_details.pickup_date,
+                       "Location":booking_details.pickup_location,
+                       "CustomerDetails":{
+                           "CustomerId":customer_Details._id,
+                           "FirstName":customer_Details.firstName,
+                           "LastName":customer_Details.lastName,
+                           "Pickup_address":booking_details.pick_up_address,
+                           "Status":"Upcoming"
+                       }
+                   })
+                   return driverRideDetails
+                   // console.log(driverRideDetails)
+               }).catch(err=>{
+                   return res.status(httpStatusCodes[500].code)
+                   .json(formResponse(httpStatusCodes[500].code, err))
+               })
+           }).catch(err=>{
+              return res.status(httpStatusCodes[500].code)
+               .json(formResponse(httpStatusCodes[500].code, err))
+           })
+         
+           
+       }
+   
+    }
+   
+    if(dropCustomerResult.length!=0){
+       for(let i=0;i<dropCustomerResult.length;i++){
+           let res=await  Booking.findOne({
+                  where:{
+                      isDeleted:false,
+                      _id:dropCustomerResult[i].booking_id
+                  },
+                  attributes:["_id","customer_id","dropoff_date","dropoff_time","dropoff_location","drop_off_address","dropoff_date"]
+              }).then((booking_details)=>{
+                return Customer.findOne({
+                      where:{
+                          isDeleted:false,
+                          _id:booking_details.customer_id
+                      },
+                      attributes:["_id","firstName","lastName"]
+                  }).then((customer_Details)=>{
+                      driverRideDetails.push({
+                          "BookingId":booking_details._id,
+                          "DropOffId":dropCustomerResult[i]._id,
+                          "Ride":"Drop-Off",
+                          "Time":booking_details.dropoff_time,
+                          "Date":booking_details.dropoff_date,
+                          "Location":booking_details.dropoff_location,
+                          "CustomerDetails":{
+                              "CustomerId":customer_Details._id,
+                              "FirstName":customer_Details.firstName,
+                              "LastName":customer_Details.lastName,
+                              "Dropoff_address":booking_details.drop_off_address,
+                              "Status":"Upcoming"
+                          }
+                      })
+                      return driverRideDetails
+                      // console.log(driverRideDetails)
+                  }).catch(err=>{
+                      return res.status(httpStatusCodes[500].code)
+                      .json(formResponse(httpStatusCodes[500].code, err))
+                  })
+              }).catch(err=>{
+                 return res.status(httpStatusCodes[500].code)
+                  .json(formResponse(httpStatusCodes[500].code, err))
+              })  
+          }
+    }
+   
+    const sortableData= driverRideDetails.map(data=>{
+       const monthNumber={
+           "Jan":"1",
+           "Feb":"2",
+           "Mar":"3",
+           "Apr":"4",
+           "May":"5",
+           "Jun":"6",
+           "Jul":"7",
+           "Aug":"8",
+           "Sep":"9",
+           "Oct":"10",
+           "Nov":"11",
+           "Dec":"12"
+       }
+       const [hours,minutes,seconds]=data.Time.split(':');
+       console.log(data.Date)
+       console.log(data.Date.toString())
+       const [day,month,date,year]=data.Date.toString().split(' ')
+       console.log(monthNumber[month]+" --"+date+"-- "+year+"--"+hours+"-"+minutes,"--"+seconds)
+       
+       return {
+           ...data,
+           new_Date:new Date(year.toString(),monthNumber[month].toString(),date.toString(),hours.toString(),minutes.toString(),seconds.toString())
+       }
+    })
+    sortableData.sort((a,b)=>a.new_Date-b.new_Date)
+   
+   return res.status(httpStatusCodes[200].code)
+   .json(formResponse(httpStatusCodes[200].code, sortableData))
+   
+}
+
+exports.getcompletedRideDetails=async(req,res)=>{
+    const driver_ID=req.params.id;
+
+    const pickCustomerDetails= PickCustomer.findAll({
+       where:{
+           driver:driver_ID,
+           isDeleted:false,
+           status:"Completed"
+       },
+       attributes:["_id","booking_id"]
+    })
+    const dropCustomerDetails= DropCustomer.findAll({
+       where:{
+           driver:driver_ID,
+           isDeleted:false,
+           status:"Completed"
+       },
+       attributes:["_id","booking_id"]
+    })
+    const result=await Promise.all([pickCustomerDetails,dropCustomerDetails])
+    const pickCustomerResult=result[0]
+    const dropCustomerResult=result[1]
+   
+    let driverRideDetails=[]
+   
+    if(pickCustomerResult.length!=0){
+       for(let i=0;i<pickCustomerResult.length;i++){
+        let res=await  Booking.findOne({
+               where:{
+                   isDeleted:false,
+                   _id:pickCustomerResult[i].booking_id
+               },
+               attributes:["_id","customer_id","pickup_date","pickup_time","pickup_location","pick_up_address","pickup_date"]
+           }).then((booking_details)=>{
+             return Customer.findOne({
+                   where:{
+                       isDeleted:false,
+                       _id:booking_details.customer_id
+                   },
+                   attributes:["_id","firstName","lastName"]
+               }).then((customer_Details)=>{
+                   driverRideDetails.push({
+                       "BookingId":booking_details._id,
+                       "PickUpId":pickCustomerResult[i]._id,
+                       "Ride":"Pick-Up",
+                       "Time":booking_details.pickup_time,
+                       "Date":booking_details.pickup_date,
+                       "Location":booking_details.pickup_location,
+                       "CustomerDetails":{
+                           "CustomerId":customer_Details._id,
+                           "FirstName":customer_Details.firstName,
+                           "LastName":customer_Details.lastName,
+                           "Pickup_address":booking_details.pick_up_address,
+                           "Status":"Completed"
+                       }
+                   })
+                   return driverRideDetails
+                   // console.log(driverRideDetails)
+               }).catch(err=>{
+                   return res.status(httpStatusCodes[500].code)
+                   .json(formResponse(httpStatusCodes[500].code, err))
+               })
+           }).catch(err=>{
+              return res.status(httpStatusCodes[500].code)
+               .json(formResponse(httpStatusCodes[500].code, err))
+           })
+         
+           
+       }
+   
+    }
+   
+    if(dropCustomerResult.length!=0){
+       for(let i=0;i<dropCustomerResult.length;i++){
+           let res=await  Booking.findOne({
+                  where:{
+                      isDeleted:false,
+                      _id:dropCustomerResult[i].booking_id
+                  },
+                  attributes:["_id","customer_id","dropoff_date","dropoff_time","dropoff_location","drop_off_address","dropoff_date"]
+              }).then((booking_details)=>{
+                return Customer.findOne({
+                      where:{
+                          isDeleted:false,
+                          _id:booking_details.customer_id
+                      },
+                      attributes:["_id","firstName","lastName"]
+                  }).then((customer_Details)=>{
+                      driverRideDetails.push({
+                          "BookingId":booking_details._id,
+                          "DropOffId":dropCustomerResult[i]._id,
+                          "Ride":"Drop-Off",
+                          "Time":booking_details.dropoff_time,
+                          "Date":booking_details.dropoff_date,
+                          "Location":booking_details.dropoff_location,
+                          "CustomerDetails":{
+                              "CustomerId":customer_Details._id,
+                              "FirstName":customer_Details.firstName,
+                              "LastName":customer_Details.lastName,
+                              "Dropoff_address":booking_details.drop_off_address,
+                              "Status":"Completed"
+                          }
+                      })
+                      return driverRideDetails
+                      // console.log(driverRideDetails)
+                  }).catch(err=>{
+                      return res.status(httpStatusCodes[500].code)
+                      .json(formResponse(httpStatusCodes[500].code, err))
+                  })
+              }).catch(err=>{
+                 return res.status(httpStatusCodes[500].code)
+                  .json(formResponse(httpStatusCodes[500].code, err))
+              })  
+          }
+    }
+   
+    const sortableData= driverRideDetails.map(data=>{
+       const monthNumber={
+           "Jan":"1",
+           "Feb":"2",
+           "Mar":"3",
+           "Apr":"4",
+           "May":"5",
+           "Jun":"6",
+           "Jul":"7",
+           "Aug":"8",
+           "Sep":"9",
+           "Oct":"10",
+           "Nov":"11",
+           "Dec":"12"
+       }
+       const [hours,minutes,seconds]=data.Time.split(':');
+       console.log(data.Date)
+       console.log(data.Date.toString())
+       const [day,month,date,year]=data.Date.toString().split(' ')
+       console.log(monthNumber[month]+" --"+date+"-- "+year+"--"+hours+"-"+minutes,"--"+seconds)
+       
+       return {
+           ...data,
+           new_Date:new Date(year.toString(),monthNumber[month].toString(),date.toString(),hours.toString(),minutes.toString(),seconds.toString())
+       }
+    })
+    sortableData.sort((a,b)=>a.new_Date-b.new_Date)
+   
+   return res.status(httpStatusCodes[200].code)
+   .json(formResponse(httpStatusCodes[200].code, sortableData))
+   
 }
 
 exports.getDriverHistory = async (req, res) => {
