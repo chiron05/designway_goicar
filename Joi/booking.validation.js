@@ -49,7 +49,8 @@ const updatePickDropSchema=Joi.object({
    driver:Joi.string().min(36),
    searchBookingId:Joi.string().min(36),
    fuel_km:Joi.number(),
-   fuel_tank:Joi.number()
+   fuel_tank:Joi.number(),
+   vehicle_conditon:Joi.string()
 });
 
 const pickUpDropOffSchema=Joi.object({

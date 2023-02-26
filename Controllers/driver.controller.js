@@ -22,7 +22,8 @@ exports.getDrivers = async (req, res) => {
             isDeleted: false
         },
         limit: 10,
-        offset: skip
+        offset: skip,
+        order: [['createdAt', 'DESC']]
     }).then(result => {
        return res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
@@ -406,7 +407,8 @@ exports.getDriverById = async (req, res) => {
         where: {
             id: req.params.id,
             isDeleted: false
-        }
+        },
+        order: [['createdAt', 'DESC']]
     })
 
     if (result) {
@@ -568,6 +570,8 @@ exports.getDriverByPhone = async (req, res) => {
     Driver.findOne({
         where: {
             phone_number: req.params.no,
+            isDeleted:false,
+            order: [['createdAt', 'DESC']]
         }
     }).then(result => {
 
@@ -590,10 +594,11 @@ exports.getDriverByName = async (req, res) => {
     console.log(req.body)
     Driver.findAll({
         where: {
-            first_name: req.body.first_name,
-            last_name:req.body.last_name,
+            first_name: req.query.first_name,
+            last_name:req.query.last_name,
             isDeleted: false
-        }
+        },
+        order: [['createdAt', 'DESC']]
     }).then(result => {
 
         if (result[0]) {

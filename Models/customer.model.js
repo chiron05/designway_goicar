@@ -39,11 +39,23 @@ const Customer = db.define('customer', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    driving_license:{
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     validUntil: {
         type: DataTypes.DATE,
         allowNull: false
     },
-    idProofURL: {
+    idProof: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    id_front:{
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    id_back:{
         type: DataTypes.STRING,
         allowNull: false
     },

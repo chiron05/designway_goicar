@@ -88,9 +88,17 @@ exports.updateVehicleBooking = async (req, res) => {
                 req.body,
                 { where: { _id: req.params.id, isDeleted: false, booking_status: 'pending' } }
             )
-                .then(result => {
+                .then(async result => {
                     if (result[0]) {
-                        res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, `Booking Updated Successfully`))
+                        const updatedBookig=await Booking.findOne({
+                            where:{
+                                _id: req.params.id
+                            }
+
+                        })
+                        return res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, {
+                            "UpdatedBooking":updatedBookig
+                        }))
                     }
                     else {
                         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `No Bookings are available for BookingID: ${req.params.id}`))
@@ -628,7 +636,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
         const res=await Promise.all([customer_details,vehicle_details])
 
         const pickup_details = PickCustomer.findOne({
-                        attributes: ["_id","driver"],
+                        attributes: ["_id","driver","fuel_tank","fuel_km"],
                         where: {
                             booking_id: booking_id,
                             isDeleted: false
@@ -636,7 +644,7 @@ const getBookingById=async(booking_id,customer_id,vehicle_id)=>{
             
                     })
         const dropoff_details = DropCustomer.findOne({
-                        attributes: ["_id","driver"],
+                        attributes: ["_id","driver","fuel_tank","fuel_km","vehicle_condition"],
                         where: {
                             booking_id: booking_id,
                             isDeleted: false
@@ -917,7 +925,8 @@ exports.getAllBooking=async(req,res)=>{
             offset:skip,
             where:{
                 isDeleted:false
-            }
+            },
+            order: [['createdAt', 'DESC']]
         })
     let i=0;
     let max_length=allBookingID.length

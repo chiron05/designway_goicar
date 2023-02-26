@@ -29,7 +29,6 @@ const DropCustomer=db.define('dropcustomer',{
     },
     vehicle_condition: {
         type: DataTypes.STRING,
-        allowNull: false
     },
     video: {
         type: DataTypes.STRING,

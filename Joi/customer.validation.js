@@ -2,6 +2,7 @@ const Joi=require("joi");
 const { joiPasswordExtendCore } = require('joi-password');
 
 
+
 const createCustomerSchema=Joi.object({
     firstName:Joi.string().required(),
     lastName:Joi.string().required(),
@@ -13,7 +14,10 @@ const createCustomerSchema=Joi.object({
     alternate_number:Joi.string(),
     idNumber:Joi.number().required(),
     phoneNumber:Joi.string().length(12).pattern(/^[0-9]+$/).required(),
-    idProofURL:Joi.string().required()
+    idProof:Joi.string().required(),
+    driving_license:Joi.string(),
+    id_front:Joi.string(),
+    id_back:Joi.string()
 }
 )
 

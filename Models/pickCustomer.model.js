@@ -33,7 +33,6 @@ const PickCustomer=db.define('pickcustomer',{
     },
     // vehicle_condition: {
     //     type: DataTypes.STRING,
-    //     allowNull: false
     // },
     video: {
         type: DataTypes.STRING,

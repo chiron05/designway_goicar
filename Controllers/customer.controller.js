@@ -2,6 +2,7 @@ const httpStatusCodes = require('../Constants/http-status-codes');
 const { createCustomerSchema, updateCustomer, deleteCustomer } = require('../Joi/customer.validation');
 const Customer = require('../Models/customer.model');
 const cloudinary = require('../Utils/cloudinary');
+const { uploadToS3 } = require('../Utils/digitalOceanConfig');
 const { formResponse } = require('../Utils/helper');
 
 
@@ -97,12 +98,13 @@ exports.updateCustomer = async (req, res, next) => {
 exports.getCustomer = async (req, res) => {
     let skip = 10 * (req.query.page);
     Customer.findAll({
-        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
         limit: 10,
         offset: skip,
         where: {
             isDeleted: false
-        }
+        },
+        order: [['createdAt', 'DESC']]
     }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
@@ -135,7 +137,10 @@ exports.createCustomer = async (req, res, next) => {
             return;
         }
         try {
-            const result = await cloudinary.uploader.upload(req.file.path);
+            const id_front = await uploadToS3(req.files.id_front[0], 'id_front')
+            const id_back = await uploadToS3(req.files.id_back[0], 'id_back')
+            const driving_license = await uploadToS3(req.files.driving_license[0], 'driving_license')
+          
             const { error, value } = createCustomerSchema.validate({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -144,7 +149,10 @@ exports.createCustomer = async (req, res, next) => {
                 validUntil: req.body.validUntil,
                 idNumber: req.body.idNumber,
                 phoneNumber: req.body.phoneNumber,
-                idProofURL: result.url
+                idProof: req.body.idProof,
+                driving_license:driving_license.Location,
+                id_front:id_front.Location,
+                id_back:id_back.Location
             });
             if (error) {
                 res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
@@ -174,9 +182,11 @@ exports.createCustomer = async (req, res, next) => {
                 validUntil: req.body.validUntil,
                 idNumber: req.body.idNumber,
                 phoneNumber: req.body.phoneNumber,
-                idProofURL: result.url
+                idProof: req.body.idProof,
+                driving_license:driving_license.Location,
+                id_front:id_front.Location,
+                id_back:id_back.Location
             })
-    
             await data.save();
     
             if (data.errors) {
@@ -207,11 +217,13 @@ exports.createCustomer = async (req, res, next) => {
 
 exports.getCustomerByPhone = async (req, res) => {
     Customer.findOne({
-        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
+
         where: {
             phoneNumber: req.params.no,
             isDeleted: false
-        }
+        },
+        order: [['createdAt', 'DESC']]
     }).then(result => {
 
         if (result) {
@@ -232,7 +244,8 @@ exports.getCustomerByPhone = async (req, res) => {
 
 exports.getCustomerById = async (req, res) => {
     Customer.findOne({
-        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
+        order: [['createdAt', 'DESC']],
         where: {
             _id: req.params.id,
             isDeleted: false
@@ -257,13 +270,16 @@ exports.getCustomerById = async (req, res) => {
 exports.getCustomerByName = async (req, res) => {
     console.log(req.body)
     Customer.findAll({
-        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProofURL", "alternate_number"],
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
+
         where: {
-            firstName: req.body.firstName,
-        }
+            firstName: req.query.firstName,
+            lastName:req.query.lastName
+        },
+        order: [['createdAt', 'DESC']]
     }).then(result => {
 
-        if (result) {
+        if (result.length!=0) {
             return res.status(httpStatusCodes[200].code)
                 .json(formResponse(httpStatusCodes[200].code, result))
         } else {

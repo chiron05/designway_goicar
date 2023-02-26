@@ -17,7 +17,8 @@ exports.getVendors = async (req, res) => {
             isDeleted: false
         },
         limit: 10,
-        offset: skip
+        offset: skip,
+        order: [['createdAt', 'DESC']]
     }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
@@ -71,7 +72,6 @@ exports.createVendor = async (req, res) => {
                 {
                     isDeleted: true
                 }, Sequelize.or(
-                    { email: req.body.email },
                     { phone_number: req.body.phone_number }
                 )
             )
@@ -270,8 +270,8 @@ exports.getVendorByName = async (req, res) => {
     console.log(req.body)
     Vendor.findAll({
         where: {
-            first_name: req.body.first_name,
-            last_name:req.body.last_name,
+            first_name: req.query.first_name,
+            last_name:req.query.last_name,
             isDeleted: false
         }
     }).then(result => {

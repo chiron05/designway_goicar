@@ -6,7 +6,18 @@ const cloudinary=require('../Utils/cloudinary')
 const upload=require('../Utils/multer')
 
 customerRouter.get('/customer',getCustomer)
-customerRouter.post('/customer',upload.single('idProofURL'),createCustomer)
+customerRouter.post('/customer', upload.fields([
+    {
+        name: 'id_front', maxCount: 1
+    },
+    {
+        name: 'id_back', maxCount: 1
+    },
+    {
+        name: 'driving_license', maxCount: 1
+    }
+
+]),createCustomer)
 customerRouter.put('/customer/:id',updateCustomer)
 customerRouter.delete('/customer/:id',deleteCustomer)
 customerRouter.get('/customer/phonenumber/:no',getCustomerByPhone)

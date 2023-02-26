@@ -19,7 +19,7 @@ const Vendor = db.define('vendor', {
     },
     address: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     city_state: {
         type: DataTypes.STRING,
@@ -31,7 +31,7 @@ const Vendor = db.define('vendor', {
     },
     email: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         isLowercase: true,
         unique:true
     },
@@ -42,7 +42,7 @@ const Vendor = db.define('vendor', {
     },
     alternate_number: {
         type: DataTypes.STRING, //exceeding int
-        allowNull: false
+        allowNull: true
     },
     id_proof: {
         type: DataTypes.STRING,

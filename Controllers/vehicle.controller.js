@@ -20,7 +20,8 @@ exports.getVehicleById = async (req, res) => {
         where: {
             id: req.params.id,
             isDeleted: false
-        }
+        },
+        order: [['createdAt', 'DESC']]
     })
         .then(result => {
             if (result != null) {
@@ -39,7 +40,7 @@ exports.getVehicleById = async (req, res) => {
 exports.createVehicle = async (req, res) => {
 
     const vehicleImages = [];
-
+    console.log("-->"+req.files.image.length+"<---")
     for (let i = 0; i < req.files.image.length; i++) {
         const file = req.files.image[i];
         const fieldname = 'vehicleImage';
@@ -165,7 +166,8 @@ exports.getAllVehicle = async (req, res) => {
             isDeleted: false
         },
         limit: 10,
-        offset: skip
+        offset: skip,
+        order: [['createdAt', 'DESC']]
     }).then(result => {
         res.status(httpStatusCodes[200].code)
             .json(formResponse(httpStatusCodes[200].code, result))
@@ -197,9 +199,19 @@ exports.updateVehicle = async (req, res) => {
                 isDeleted: false
             }
         })
-            .then(result => {
+            .then(async(result) => {
                 if (result[0]) {
-                    res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code, `vehicle ${req.params.id} updated successfully`))
+                 const updatedVehicle=   await Vehicle.findOne(
+                        {
+                            where:{
+                                id: req.params.id,
+                                isDeleted: false
+                            }
+                        }
+                    )
+                    res.status(httpStatusCodes[200].code).json(formResponse(httpStatusCodes[200].code,{
+                        "UpdatedVehicle":updatedVehicle
+                    }))
                 }
                 else {
                     res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, `No Vehicle are available for VehicleID: ${req.params.id}`))
