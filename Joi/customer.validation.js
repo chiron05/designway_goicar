@@ -9,7 +9,7 @@ const createCustomerSchema=Joi.object({
     email:Joi.string().email({
         minDomainSegments:2,
         tlds:{allow:["com","in"]}
-    }).required(),
+    }),
     validUntil:Joi.date(),
     alternate_number:Joi.string(),
     idNumber:Joi.number().required(),
