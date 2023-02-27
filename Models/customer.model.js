@@ -41,7 +41,7 @@ const Customer = db.define('customer', {
     },
     driving_license:{
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     validUntil: {
         type: DataTypes.DATE,
@@ -53,11 +53,11 @@ const Customer = db.define('customer', {
     },
     id_front:{
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     id_back:{
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     isDeleted: {
         type: DataTypes.BOOLEAN,

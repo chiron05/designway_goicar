@@ -137,10 +137,26 @@ exports.createCustomer = async (req, res, next) => {
             return;
         }
         try {
-            const id_front = await uploadToS3(req.files.id_front[0], 'id_front')
-            const id_back = await uploadToS3(req.files.id_back[0], 'id_back')
-            const driving_license = await uploadToS3(req.files.driving_license[0], 'driving_license')
+            // console.log(req.files.id_front[0])
+            let customerDocuments={
+
+            }
+            if(req.files.id_front!=undefined){
+                const id_front = await uploadToS3(req.files.id_front[0], 'id_front')
+                customerDocuments["id_front"]=id_front.Location
+            }
+            if(req.files.id_back!=undefined){
+                const id_back = await uploadToS3(req.files.id_back[0], 'id_back')
+                customerDocuments["id_back"]=id_back.Location
+            }
+            if(req.files.driving_license!=undefined){
+                const driving_license = await uploadToS3(req.files.driving_license[0], 'driving_license')
+                customerDocuments["driving_license"]=driving_license.Location
+            }
+         
           
+          
+
             const { error, value } = createCustomerSchema.validate({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -150,9 +166,7 @@ exports.createCustomer = async (req, res, next) => {
                 idNumber: req.body.idNumber,
                 phoneNumber: req.body.phoneNumber,
                 idProof: req.body.idProof,
-                driving_license:driving_license.Location,
-                id_front:id_front.Location,
-                id_back:id_back.Location
+                ...customerDocuments
             });
             if (error) {
                 res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
@@ -183,9 +197,7 @@ exports.createCustomer = async (req, res, next) => {
                 idNumber: req.body.idNumber,
                 phoneNumber: req.body.phoneNumber,
                 idProof: req.body.idProof,
-                driving_license:driving_license.Location,
-                id_front:id_front.Location,
-                id_back:id_back.Location
+               ...customerDocuments
             })
             await data.save();
     

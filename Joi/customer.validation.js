@@ -18,6 +18,7 @@ const createCustomerSchema=Joi.object({
     driving_license:Joi.string(),
     id_front:Joi.string(),
     id_back:Joi.string()
+
 }
 )
 
