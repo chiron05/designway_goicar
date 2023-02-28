@@ -103,7 +103,7 @@ exports.updateCustomer = async (req, res, next) => {
 exports.getCustomer = async (req, res) => {
     let skip = 10 * (req.query.page);
     Customer.findAll({
-        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber","driver_license_number"],
         limit: 10,
         offset: skip,
         where: {
@@ -236,7 +236,7 @@ exports.createCustomer = async (req, res, next) => {
 
 exports.getCustomerByPhone = async (req, res) => {
     Customer.findOne({
-        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
+        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber","driver_license_number", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
 
         where: {
             phoneNumber: req.params.no,
@@ -263,7 +263,7 @@ exports.getCustomerByPhone = async (req, res) => {
 
 exports.getCustomerById = async (req, res) => {
     Customer.findOne({
-        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
+        attributes: ["_id", "firstName", "lastName", "email","driver_license_number", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
         order: [['createdAt', 'DESC']],
         where: {
             _id: req.params.id,
@@ -289,7 +289,7 @@ exports.getCustomerById = async (req, res) => {
 exports.getCustomerByName = async (req, res) => {
     console.log(req.body)
     Customer.findAll({
-        attributes: ["_id", "firstName", "lastName", "email", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
+        attributes: ["_id", "firstName", "lastName", "email","driver_license_number", "phoneNumber", "idProof", "alternate_number","validUntil","id_front","id_back","driving_license","idNumber"],
 
         where: {
             firstName: req.query.firstName,
