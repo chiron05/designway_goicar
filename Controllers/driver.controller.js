@@ -476,12 +476,10 @@ exports.getRideDetails = async (req, res) => {
                 return driverRideDetails
                 // console.log(driverRideDetails)
             }).catch(err=>{
-                return res.status(httpStatusCodes[500].code)
-                .json(formResponse(httpStatusCodes[500].code, err))
+               return driverRideDetails
             })
         }).catch(err=>{
-           return res.status(httpStatusCodes[500].code)
-            .json(formResponse(httpStatusCodes[500].code, err))
+            return driverRideDetails
         })
       
         
@@ -498,6 +496,7 @@ exports.getRideDetails = async (req, res) => {
                },
                attributes:["_id","customer_id","dropoff_date","dropoff_time","dropoff_location","drop_off_address","dropoff_date"]
            }).then((booking_details)=>{
+            console.log(booking_details.customer_id)
              return Customer.findOne({
                    where:{
                        isDeleted:false,
@@ -505,6 +504,8 @@ exports.getRideDetails = async (req, res) => {
                    },
                    attributes:["_id","firstName","lastName"]
                }).then((customer_Details)=>{
+              
+                
                    driverRideDetails.push({
                        "BookingId":booking_details._id,
                        "DropOffId":dropCustomerResult[i]._id,
@@ -522,12 +523,11 @@ exports.getRideDetails = async (req, res) => {
                    return driverRideDetails
                    // console.log(driverRideDetails)
                }).catch(err=>{
-                   return res.status(httpStatusCodes[500].code)
-                   .json(formResponse(httpStatusCodes[500].code, err))
+                return driverRideDetails
                })
            }).catch(err=>{
-              return res.status(httpStatusCodes[500].code)
-               .json(formResponse(httpStatusCodes[500].code, err))
+            return driverRideDetails
+             
            })  
        }
  }
@@ -560,8 +560,19 @@ exports.getRideDetails = async (req, res) => {
  })
  sortableData.sort((a,b)=>a.new_Date-b.new_Date)
 
+ const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+ const limit = parseInt(req.query.limit) || 5; // Number of items to display per page, default is 5
+ const startIndex = (page - 1) * limit;
+ const endIndex = page * limit;
+ const paginatedData = sortableData.slice(startIndex, endIndex);
+ const totalPages = Math.ceil(sortableData.length / limit);
+
 return res.status(httpStatusCodes[200].code)
-.json(formResponse(httpStatusCodes[200].code, sortableData))
+.json(formResponse(httpStatusCodes[200].code, {
+    data: paginatedData,
+    currentPage: page,
+    totalPages: totalPages
+  }))
 
 }
 
@@ -674,12 +685,10 @@ exports.getUpcomingRideDetails=async(req,res)=>{
                    return driverRideDetails
                    // console.log(driverRideDetails)
                }).catch(err=>{
-                   return res.status(httpStatusCodes[500].code)
-                   .json(formResponse(httpStatusCodes[500].code, err))
+                return driverRideDetails
                })
            }).catch(err=>{
-              return res.status(httpStatusCodes[500].code)
-               .json(formResponse(httpStatusCodes[500].code, err))
+            return driverRideDetails
            })
          
            
@@ -721,12 +730,10 @@ exports.getUpcomingRideDetails=async(req,res)=>{
                       return driverRideDetails
                       // console.log(driverRideDetails)
                   }).catch(err=>{
-                      return res.status(httpStatusCodes[500].code)
-                      .json(formResponse(httpStatusCodes[500].code, err))
+                    return driverRideDetails
                   })
               }).catch(err=>{
-                 return res.status(httpStatusCodes[500].code)
-                  .json(formResponse(httpStatusCodes[500].code, err))
+                return driverRideDetails
               })  
           }
     }
@@ -758,9 +765,21 @@ exports.getUpcomingRideDetails=async(req,res)=>{
        }
     })
     sortableData.sort((a,b)=>a.new_Date-b.new_Date)
-   
+    const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+    const limit = parseInt(req.query.limit) || 5; // Number of items to display per page, default is 5
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+  
+    const paginatedData = sortableData.slice(startIndex, endIndex);
+  
+    const totalPages = Math.ceil(sortableData.length / limit);
+
    return res.status(httpStatusCodes[200].code)
-   .json(formResponse(httpStatusCodes[200].code, sortableData))
+   .json(formResponse(httpStatusCodes[200].code, {
+    data: paginatedData,
+    currentPage: page,
+    totalPages: totalPages
+  }))
    
 }
 
@@ -823,12 +842,10 @@ exports.getcompletedRideDetails=async(req,res)=>{
                    return driverRideDetails
                    // console.log(driverRideDetails)
                }).catch(err=>{
-                   return res.status(httpStatusCodes[500].code)
-                   .json(formResponse(httpStatusCodes[500].code, err))
+                return driverRideDetails
                })
            }).catch(err=>{
-              return res.status(httpStatusCodes[500].code)
-               .json(formResponse(httpStatusCodes[500].code, err))
+            return driverRideDetails
            })
          
            
@@ -870,12 +887,10 @@ exports.getcompletedRideDetails=async(req,res)=>{
                       return driverRideDetails
                       // console.log(driverRideDetails)
                   }).catch(err=>{
-                      return res.status(httpStatusCodes[500].code)
-                      .json(formResponse(httpStatusCodes[500].code, err))
+                    return driverRideDetails
                   })
               }).catch(err=>{
-                 return res.status(httpStatusCodes[500].code)
-                  .json(formResponse(httpStatusCodes[500].code, err))
+                return driverRideDetails
               })  
           }
     }
@@ -908,8 +923,21 @@ exports.getcompletedRideDetails=async(req,res)=>{
     })
     sortableData.sort((a,b)=>a.new_Date-b.new_Date)
    
+  const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+  const limit = parseInt(req.query.limit) || 5; // Number of items to display per page, default is 5
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const paginatedData = data.slice(startIndex, endIndex);
+
+  const totalPages = Math.ceil(data.length / limit);
+
    return res.status(httpStatusCodes[200].code)
-   .json(formResponse(httpStatusCodes[200].code, sortableData))
+   .json(formResponse(httpStatusCodes[200].code, {
+    data: paginatedData,
+    currentPage: page,
+    totalPages: totalPages
+  }))
    
 }
 
