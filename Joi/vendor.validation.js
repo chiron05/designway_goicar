@@ -6,7 +6,7 @@ const createVendorSchema = Joi.object({
     // id: Joi.string().min(36).required(),
     first_name: Joi.string().min(2).max(20).required(),
     last_name: Joi.string().min(2).max(20),
-    address: Joi.string().required(),
+    address: Joi.string(),
     city_state: Joi.string().min(1),
     pincode: Joi.string().min(3),
     email: Joi.string().email({
