@@ -69,6 +69,11 @@ exports.updateCustomer = async (req, res, next) => {
         lastName: req.body.lastName,
         email: req.body.email,
         phoneNumber: req.body.phoneNumber,
+        driver_license_number:req.body.driver_license_number,
+        alternate_number:req.body.alternate_number,
+        idNumber:req.body.idNumber,
+        validUntil:req.body.validUntil,
+        driver_license_number:req.body.driver_license_number
     });
     if (error) {
         res.status(httpStatusCodes[400].code).json(formResponse(httpStatusCodes[400].code, error))
@@ -166,6 +171,7 @@ exports.createCustomer = async (req, res, next) => {
                 idNumber: req.body.idNumber,
                 phoneNumber: req.body.phoneNumber,
                 idProof: req.body.idProof,
+                driver_license_number:req.body.driver_license_number,
                 ...customerDocuments
             });
             if (error) {
@@ -197,6 +203,7 @@ exports.createCustomer = async (req, res, next) => {
                 idNumber: req.body.idNumber,
                 phoneNumber: req.body.phoneNumber,
                 idProof: req.body.idProof,
+                driver_license_number:req.body.driver_license_number,
                ...customerDocuments
             })
             await data.save();

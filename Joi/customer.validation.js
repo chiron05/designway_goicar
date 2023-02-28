@@ -17,7 +17,8 @@ const createCustomerSchema=Joi.object({
     idProof:Joi.string().required(),
     driving_license:Joi.string(),
     id_front:Joi.string(),
-    id_back:Joi.string()
+    id_back:Joi.string(),
+    driver_license_number:Joi.string()
 
 }
 )
@@ -26,14 +27,17 @@ const updateCustomer=Joi.object({
     _id:Joi.string().min(36).required(),
     firstName:Joi.string(),
     lastName:Joi.string(),
-    alternate_number:Joi.string(),
     validUntil:Joi.date(),
     idNumber:Joi.number(),
     email:Joi.string().email({
         minDomainSegments:2,
         tlds:{allow:["com","in"]}
     }),
-    phoneNumber:Joi.string().length(12).pattern(/^[0-9]+$/)
+    phoneNumber:Joi.string().length(12).pattern(/^[0-9]+$/),
+    driver_license_number:Joi.string(),
+    alternate_number:Joi.string(),
+    validUntil:Joi.string(),
+    driver_license_number:Joi.string()
 }
 )
 

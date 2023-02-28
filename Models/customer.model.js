@@ -55,6 +55,10 @@ const Customer = db.define('customer', {
         type: DataTypes.STRING,
         allowNull: true
     },
+    driver_license_number:{
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     id_back:{
         type: DataTypes.STRING,
         allowNull: true
